@@ -36,9 +36,9 @@ public class Main {
                     + filename
                     + "\", \"Time\": "
                     + String.format("%.2f", watch.getTime())
-                    + ", \"Result\": SAT\""
-                    + "\", \"Solution\": "
-                    + result.createSolutionString(vars)
+                    + ", \"Result\": \"SAT\""
+                    + ", \"Solution\": "
+                    + "\"" + result.createSolutionString(vars) + "\""
                     + "}");
         }
         else {
@@ -46,8 +46,8 @@ public class Main {
                     + filename
                     + "\", \"Time\": "
                     + String.format("%.2f", watch.getTime())
-                    + ", \"Result\": UNSAT\""
-                    + "\"}");
+                    + ", \"Result\": \"UNSAT\""
+                    + "}");
         }
 
     }
