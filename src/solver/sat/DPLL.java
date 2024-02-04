@@ -26,13 +26,16 @@ public class DPLL {
     private void propagatePureSymbols(Set<Integer> pureSymbols, SATInstance instance, Model model) {
         List<Set<Integer>> updatedClauses = new ArrayList<>();
         for (Set<Integer> clause : instance.clauses) {
+            boolean keepClause = true;
             for (Integer pureSymbol : pureSymbols) {
-                if (!clause.contains(pureSymbol)) {
-                    updatedClauses.add(clause);
+                if (clause.contains(pureSymbol)) {
+                    instance.numClauses--;
+                    keepClause = false;
+                    break;
                 }
-                else {
-                    instance.numClauses --;
-                }
+            }
+            if (keepClause) {
+                updatedClauses.add(clause);
             }
         }
         model.model.addAll(pureSymbols); // TODO: create a setModel method
