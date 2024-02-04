@@ -9,4 +9,8 @@ public class Model {
      public Model(HashSet<Integer> model) {
           this.model = model;
      }
+
+     public Model copy() {
+          return new Model(new HashSet<>(this.model));
+     }
 }

@@ -4,12 +4,6 @@ import java.util.*;
 
 public class DPLL {
 
-    private SATInstance instance;
-
-    public DPLL(SATInstance instance) {
-        this.instance = instance;
-    }
-
     private Set<Integer> findPureSymbols(SATInstance instance) {
         // TODO: write this!!
         HashSet<Integer> pureSymbols = new HashSet<>();
@@ -36,10 +30,17 @@ public class DPLL {
                 if (!clause.contains(pureSymbol)) {
                     updatedClauses.add(clause);
                 }
+                else {
+                    instance.numClauses --;
+                }
             }
         }
         model.model.addAll(pureSymbols); // TODO: create a setModel method
         instance.clauses = updatedClauses; // TODO: maybe create a setClauses method
+        for (Integer pureSymbol : pureSymbols) {
+            instance.numVars --;
+            instance.vars.remove((pureSymbol < 0) ? -1 * pureSymbol : pureSymbol);
+        }
     }
 
     private Integer findUnitClause(SATInstance instance) {
@@ -68,6 +69,9 @@ public class DPLL {
         }
         model.model.add(literal); // TODO: create a setModel method
         instance.clauses = updatedClauses; // TODO: maybe create a setClauses method
+        instance.numClauses = updatedClauses.size();
+        instance.vars.remove(literal < 0 ? -literal : literal);
+        instance.numVars--;
     }
 
     private Integer pickBranchVariable(SATInstance instance) throws NoVariableFoundException {
@@ -86,9 +90,64 @@ public class DPLL {
         }
         return false;
     }
+    
+    private boolean isSAT(SATInstance instance) {
+        // checks if guaranteed to be sat already
+        return instance.clauses.size() == 0;
+    }
 
-    public SATInstance dpll(SATInstance instance, Model model) {
-        // TODO: write this!!
-        return null;
+    public DPLLResult dpll(SATInstance instance, Model model) {
+        if (isSAT(instance)) {
+            return new DPLLResult(instance, model, true);
+        }
+
+        if (hasEmptyClause(instance)) {
+            return new DPLLResult(instance, model, false);
+        }
+
+        // TODO: mess with order of pure/unit symbols
+        Set<Integer> pureSymbols = findPureSymbols(instance);
+        if (!pureSymbols.isEmpty()) {
+            propagatePureSymbols(pureSymbols, instance, model);
+            return dpll(instance, model);
+        }
+
+        Integer unitSymbol = findUnitClause(instance);
+        if (unitSymbol != 0) {
+            propagateUnitClause(instance, unitSymbol, model);
+            return dpll(instance,model);
+        }
+
+        try {
+            Integer branchVariable = pickBranchVariable(instance);
+
+            // positive assumption
+            SATInstance positiveInstance = instance.copy();
+            Model positiveModel = model.copy();
+            Set<Integer> positiveUnitClause = new HashSet<>();
+            positiveUnitClause.add(branchVariable);
+            positiveInstance.addClause(positiveUnitClause);
+            propagateUnitClause(positiveInstance, branchVariable, positiveModel);
+
+            DPLLResult positiveAssumptionResult = dpll(positiveInstance, positiveModel);
+            if (positiveAssumptionResult.isSAT) {
+                return positiveAssumptionResult;
+            }
+
+            // negative assumption
+            SATInstance negativeInstance = instance.copy();
+            Model negativeModel = model.copy();
+            Set<Integer> negativeUnitClause = new HashSet<>();
+            negativeUnitClause.add(-1 * branchVariable);
+            negativeInstance.addClause(negativeUnitClause);
+            propagateUnitClause(negativeInstance, -1 * branchVariable, negativeModel);
+
+            return dpll(negativeInstance, negativeModel);
+        }
+        catch (NoVariableFoundException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+
     }
 }

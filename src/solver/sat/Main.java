@@ -2,6 +2,7 @@ package solver.sat;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.*;
 
 /**
  * Usage example: read a given cnf instance file to create
@@ -22,9 +23,34 @@ public class Main {
         watch.start();
 
         SATInstance instance = DimacsParser.parseCNFFile(input);
+        Set<Integer> vars = new HashSet<>(instance.vars);
         System.out.println(instance);
 
+        // run DPLL
+        DPLL SATSolver = new DPLL();
+        DPLLResult result = SATSolver.dpll(instance, new Model(new HashSet<Integer>()));
+
         watch.stop();
-        System.out.println("{\"Instance\": \"" + filename + "\", \"Time\": " + String.format("%.2f", watch.getTime()) + ", \"Result\": \"--\"}");
+        if (result.isSAT) {
+            System.out.println("{\"Instance\": \""
+                    + filename
+                    + "\", \"Time\": "
+                    + String.format("%.2f", watch.getTime())
+                    + ", \"Result\": \""
+                    + result.isSAT
+                    + "\", \"Solution\": "
+                    + result.createSolutionString(vars)
+                    + "}");
+        }
+        else {
+            System.out.println("{\"Instance\": \""
+                    + filename
+                    + "\", \"Time\": "
+                    + String.format("%.2f", watch.getTime())
+                    + ", \"Result\": \""
+                    + result.isSAT
+                    + "\"}");
+        }
+
     }
 }

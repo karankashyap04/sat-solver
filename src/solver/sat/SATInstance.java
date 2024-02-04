@@ -28,10 +28,12 @@ public class SATInstance {
 
     void addVariable(Integer literal) {
         vars.add((literal < 0) ? -1 * literal : literal);
+        numVars ++;
     }
 
     void addClause(Set<Integer> clause) {
         clauses.add(clause);
+        numClauses++;
     }
 
     public String toString() {
@@ -42,5 +44,15 @@ public class SATInstance {
         for (int c = 0; c < clauses.size(); c++)
             buf.append("Clause " + c + ": " + clauses.get(c).toString() + "\n");
         return buf.toString();
+    }
+
+    public SATInstance copy() {
+        SATInstance result = new SATInstance(this.numVars, this.numClauses);
+        result.vars = new HashSet<>(this.vars);
+        result.clauses = new ArrayList<Set<Integer>>();
+        for (Set<Integer> clause : this.clauses) {
+            result.clauses.add(new HashSet<>(clause));
+        }
+        return result;
     }
 }
