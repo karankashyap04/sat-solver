@@ -3,7 +3,7 @@ package solver.sat.BranchingStrategies;
 import solver.sat.NoVariableFoundException;
 import solver.sat.SATInstance;
 
-public class RandomChoice implements BranchingStrategy{
+public class FirstVar implements BranchingStrategy{
 
     @Override
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {

@@ -1,8 +1,7 @@
 package solver.sat;
 
 import solver.sat.BranchingStrategies.BranchingStrategy;
-import solver.sat.BranchingStrategies.MaxOccurrences;
-import solver.sat.BranchingStrategies.RandomChoice;
+import solver.sat.BranchingStrategies.FirstVar;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,7 +30,7 @@ public class Main {
         System.out.println(instance);
 
         // run DPLL
-        BranchingStrategy branchingStrategy = new MaxOccurrences(); // use this to configure branching strategy
+        BranchingStrategy branchingStrategy = new FirstVar(); // use this to configure branching strategy
         DPLL SATSolver = new DPLL(branchingStrategy);
         DPLLResult result = SATSolver.dpll(instance, new Model(new HashSet<Integer>()));
 
