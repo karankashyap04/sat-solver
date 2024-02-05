@@ -5,4 +5,4 @@
 ########################################
 
 # Update this file with instructions on how to compile your code
-javac src/solver/sat/*.java
+javac src/solver/sat/*.java src/solver/sat/BranchingStrategies/*.java
