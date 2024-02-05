@@ -1,8 +1,16 @@
 package solver.sat;
 
+import solver.sat.BranchingStrategies.BranchingStrategy;
+
 import java.util.*;
 
 public class DPLL {
+
+    BranchingStrategy branchingStrategy;
+
+    public DPLL(BranchingStrategy branchingStrategy) {
+        this.branchingStrategy = branchingStrategy;
+    }
 
     private Set<Integer> findPureSymbols(SATInstance instance) {
         // TODO: write this!!
@@ -77,13 +85,13 @@ public class DPLL {
         instance.numVars--;
     }
 
-    private Integer pickBranchVariable(SATInstance instance) throws NoVariableFoundException {
-        // TODO: make smarter search heuristics at some point
-        for (Integer var : instance.vars) {
-            return var;
-        }
-        throw new NoVariableFoundException("No variable found in SATInstance: " + instance);
-    }
+//    private Integer pickBranchVariable(SATInstance instance) throws NoVariableFoundException {
+//        // TODO: make smarter search heuristics at some point
+//        for (Integer var : instance.vars) {
+//            return var;
+//        }
+//        throw new NoVariableFoundException("No variable found in SATInstance: " + instance);
+//    }
 
     private boolean hasEmptyClause(SATInstance instance) {
         for (Set<Integer> clause : instance.clauses) {
@@ -122,7 +130,7 @@ public class DPLL {
         }
 
         try {
-            Integer branchVariable = pickBranchVariable(instance);
+            Integer branchVariable = this.branchingStrategy.pickBranchingVariable(instance);
 
             // positive assumption
             SATInstance positiveInstance = instance.copy();

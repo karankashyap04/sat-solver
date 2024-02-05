@@ -16,10 +16,10 @@ public class SATInstance {
     int numClauses;
 
     // The set of variables (variables are strictly positive integers)
-    Set<Integer> vars = new HashSet<Integer>();
+    public Set<Integer> vars = new HashSet<Integer>();
 
     // The list of clauses
-    List<Set<Integer>> clauses = new ArrayList<Set<Integer>>();
+    public List<Set<Integer>> clauses = new ArrayList<Set<Integer>>();
 
     public SATInstance(int numVars, int numClauses) {
         this.numVars = numVars;
