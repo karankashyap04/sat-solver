@@ -4,6 +4,8 @@ import solver.sat.BranchingStrategies.BranchingStrategy;
 import solver.sat.BranchingStrategies.FirstVar;
 import solver.sat.BranchingStrategies.MaxOccurrences;
 
+import solver.sat.Checker.DPLLChecker;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -28,6 +30,7 @@ public class Main {
 
         SATInstance instance = DimacsParser.parseCNFFile(input);
         Set<Integer> vars = new HashSet<>(instance.vars);
+        SATInstance instanceCopy = instance.copy();
         System.out.println(instance);
 
         // run DPLL
@@ -36,6 +39,9 @@ public class Main {
         DPLLResult result = SATSolver.dpll(instance, new Model(new HashSet<Integer>()));
 
         watch.stop();
+
+        DPLLChecker checker = new DPLLChecker();
+
         if (result.isSAT) {
             System.out.println("{\"Instance\": \""
                     + filename

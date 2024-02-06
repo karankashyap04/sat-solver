@@ -55,4 +55,8 @@ public class SATInstance {
         }
         return result;
     }
+
+    public int getNumVars() {
+        return this.numVars;
+    }
 }
