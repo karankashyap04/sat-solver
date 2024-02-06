@@ -35,6 +35,11 @@ public class MaxOccurrencesMinSize implements BranchingStrategy{
 
     @Override
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
+        if (instance.clauses.isEmpty()) {
+            // pickBranchingVariable should never be called if this is the case (already SAT!)
+            throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
+        }
+
         List<Set<Integer>> minSizeClauses = this.getMinSizeClauses(instance);
 
         Map<Integer, Integer> literalScores = new HashMap<>();
