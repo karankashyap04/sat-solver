@@ -28,7 +28,6 @@ public class Main {
 
         SATInstance instance = DimacsParser.parseCNFFile(input);
         Set<Integer> vars = new HashSet<>(instance.vars);
-        SATInstance instanceCopy = instance.copy();
         System.out.println(instance);
 
         // run DPLL
