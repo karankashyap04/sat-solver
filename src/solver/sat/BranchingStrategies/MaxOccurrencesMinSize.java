@@ -16,7 +16,7 @@ import java.util.ArrayList;
  */
 public class MaxOccurrencesMinSize implements BranchingStrategy{
     
-    private List<Set<Integer>> getMinSizeClauses(SATInstance instance) {
+    public static List<Set<Integer>> getMinSizeClauses(SATInstance instance) {
         Map<Integer, List<Set<Integer>>> clausesOfSize = new HashMap<>(); // size -> list of clauses
         int currMinSize = Integer.MAX_VALUE;
         for (Set<Integer> clause : instance.clauses) {
