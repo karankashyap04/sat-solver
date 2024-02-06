@@ -3,6 +3,7 @@ package solver.sat;
 import solver.sat.BranchingStrategies.BranchingStrategy;
 import solver.sat.BranchingStrategies.FirstVar;
 import solver.sat.BranchingStrategies.MaxOccurrences;
+import solver.sat.BranchingStrategies.MaxOccurrencesMinSize;
 
 import solver.sat.Checker.DPLLChecker;
 
@@ -34,7 +35,8 @@ public class Main {
         System.out.println(instance);
 
         // run DPLL
-        BranchingStrategy branchingStrategy = new MaxOccurrences(); // use this to configure branching strategy
+//        BranchingStrategy branchingStrategy = new MaxOccurrences(); // use this to configure branching strategy
+        BranchingStrategy branchingStrategy = new MaxOccurrencesMinSize();
         DPLL SATSolver = new DPLL(branchingStrategy);
         DPLLResult result = SATSolver.dpll(instance, new Model(new HashSet<Integer>()));
 
