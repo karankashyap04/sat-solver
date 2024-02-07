@@ -138,6 +138,7 @@ public class DPLL {
             Set<Integer> positiveUnitClause = new HashSet<>();
             positiveUnitClause.add(branchVariable);
             positiveInstance.addClause(positiveUnitClause);
+            positiveInstance.numClauses ++;
             propagateUnitClause(positiveInstance, branchVariable, positiveModel);
 
             DPLLResult positiveAssumptionResult = dpll(positiveInstance, positiveModel);
@@ -151,6 +152,7 @@ public class DPLL {
             Set<Integer> negativeUnitClause = new HashSet<>();
             negativeUnitClause.add(-1 * branchVariable);
             negativeInstance.addClause(negativeUnitClause);
+            negativeInstance.numClauses ++;
             propagateUnitClause(negativeInstance, -1 * branchVariable, negativeModel);
 
             return dpll(negativeInstance, negativeModel);

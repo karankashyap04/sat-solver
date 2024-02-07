@@ -27,8 +27,12 @@ public class Main {
         watch.start();
 
         SATInstance instance = DimacsParser.parseCNFFile(input);
+        int numClauses = instance.getNumClauses();
+        int numVars = instance.getNumVars();
+        System.out.println("Number of Clauses: " + numClauses);
+        System.out.println("Number of Variables: " + numVars);
         Set<Integer> vars = new HashSet<>(instance.vars);
-        System.out.println(instance);
+//        System.out.println(instance);
 
         // run DPLL
         BranchingStrategy branchingStrategy = new AdaptiveDeepSUP(); // use this to configure branching strategy

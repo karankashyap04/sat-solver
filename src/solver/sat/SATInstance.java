@@ -28,12 +28,10 @@ public class SATInstance {
 
     void addVariable(Integer literal) {
         vars.add((literal < 0) ? -1 * literal : literal);
-        numVars ++;
     }
 
     void addClause(Set<Integer> clause) {
         clauses.add(clause);
-        numClauses++;
     }
 
     public String toString() {
