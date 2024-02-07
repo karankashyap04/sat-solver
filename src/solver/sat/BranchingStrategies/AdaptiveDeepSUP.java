@@ -30,7 +30,7 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
 //                        System.out.println("Removed literals: " + removedLiterals + ", Literal: " + literal);
 //                        System.out.println("Removed: " + removedLiterals + ", Clause: " + instance.clauses.get(i));
 //                      System.out.println("Unit propagation literal not in toUnitPropagate");
-                        toUnitPropagate.add(literal);
+                        nextUnitPropagations.add(literal);
 //                        break;
                     }
                 }
