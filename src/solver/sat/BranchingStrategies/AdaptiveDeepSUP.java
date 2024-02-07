@@ -19,17 +19,19 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
             if (clauseSize == 0) {
                 continue;
             }
-            if (clauseSize == 1 || clauseSize < 0) {
+            if (clauseSize < 0) {
+                System.out.println("Negative clause size.");
+                break;
+            }
+            if (clauseSize == 1) {
                 for (Integer literal : instance.clauses.get(i)) {
                     if (!toUnitPropagate.contains(literal)) {
                         // throw error
-                        if (clauseSize == 1) {
-                            System.out.println("Removed literals: " + removedLiterals + ", Literal: " + literal);
-//                            System.out.println("Unit propagation literal not in toUnitPropagate");
-                        } else if (clauseSize < 0) {
-                            System.out.println("Negative clause size.");
-                        }
-                        break;
+//                        System.out.println("Removed literals: " + removedLiterals + ", Literal: " + literal);
+//                        System.out.println("Removed: " + removedLiterals + ", Clause: " + instance.clauses.get(i));
+//                      System.out.println("Unit propagation literal not in toUnitPropagate");
+                        toUnitPropagate.add(literal);
+//                        break;
                     }
                 }
                 continue;
