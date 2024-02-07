@@ -32,7 +32,7 @@ public class Main {
 
         // run DPLL
 //        BranchingStrategy branchingStrategy = new MaxOccurrences(); // use this to configure branching strategy
-        BranchingStrategy branchingStrategy = new SUP();
+        BranchingStrategy branchingStrategy = new MaxoJwSUP();
         DPLL SATSolver = new DPLL(branchingStrategy);
         DPLLResult result = SATSolver.dpll(instance, new Model(new HashSet<Integer>()));
 
