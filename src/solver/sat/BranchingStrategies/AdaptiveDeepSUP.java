@@ -23,9 +23,14 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
                 for (Integer literal : instance.clauses.get(i)) {
                     if (!toUnitPropagate.contains(literal)) {
                         // throw error
-                        System.out.println("Unit propagation literal not in toUnitPropagate OR negative clause size.");
+                        if (clauseSize == 1) {
+                            System.out.println("Removed literals: " + removedLiterals + ", Literal: " + literal);
+//                            System.out.println("Unit propagation literal not in toUnitPropagate");
+                        } else if (clauseSize < 0) {
+                            System.out.println("Negative clause size.");
+                        }
+                        break;
                     }
-                    break;
                 }
                 continue;
             }
@@ -80,7 +85,13 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
             Set<Integer> removedLiterals = new HashSet<>();
             removedLiterals.add(strategyLiterals.get(i));
 
-            deepUpScores[i] = UP(2, instance, toUnitPropagate, new HashMap<>(), removedLiterals);
+            double expressionLength = 0;
+            for (Set<Integer> clause : instance.clauses) {
+                expressionLength += clause.size();
+            }
+
+            // adapt depth based on average expression length
+            deepUpScores[i] = UP((int)(expressionLength / Double.valueOf(instance.getNumClauses())), instance, toUnitPropagate, new HashMap<>(), removedLiterals);
         }
 
         int argmax = 0;

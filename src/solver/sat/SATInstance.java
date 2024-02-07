@@ -59,4 +59,6 @@ public class SATInstance {
     public int getNumVars() {
         return this.numVars;
     }
+
+    public int getNumClauses() { return this.numClauses; }
 }

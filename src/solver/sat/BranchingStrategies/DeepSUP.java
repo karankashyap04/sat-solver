@@ -28,6 +28,7 @@ public class DeepSUP implements BranchingStrategy {
                         // throw error
                         System.out.println("Unit propagation literal not in toUnitPropagate OR negative clause size.");
                     }
+                    // why break outside of the if statement? Would only get through first iteration through clauses...
                     break;
                 }
                 continue;

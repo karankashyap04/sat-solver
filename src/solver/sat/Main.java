@@ -31,8 +31,8 @@ public class Main {
         System.out.println(instance);
 
         // run DPLL
-//        BranchingStrategy branchingStrategy = new MaxOccurrences(); // use this to configure branching strategy
-        BranchingStrategy branchingStrategy = new DeepSUP();
+        BranchingStrategy branchingStrategy = new AdaptiveDeepSUP(); // use this to configure branching strategy
+//        BranchingStrategy branchingStrategy = new DeepSUP(); // use this to configure branching strategy
         DPLL SATSolver = new DPLL(branchingStrategy);
         DPLLResult result = SATSolver.dpll(instance, new Model(new HashSet<Integer>()));
 
