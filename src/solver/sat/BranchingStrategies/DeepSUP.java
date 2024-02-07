@@ -1,6 +1,5 @@
 package solver.sat.BranchingStrategies;
 
-import solver.sat.Model;
 import solver.sat.NoVariableFoundException;
 import solver.sat.SATInstance;
 
@@ -78,7 +77,13 @@ public class DeepSUP implements BranchingStrategy {
         Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral, MAMS, mamsLiteral, JW, jwLiteral);
         int[]deepUpScores = new int[4];
         for (int i = 0; i < 4; i++) {
-            deepUpScores[i] = UP(2, instance, Set.of(strategyLiterals.get(i)), new HashMap<>(), Set.of(strategyLiterals.get(i)));
+            Set<Integer> toUnitPropagate = new HashSet<>();
+            toUnitPropagate.add(strategyLiterals.get(i));
+            
+            Set<Integer> removedLiterals = new HashSet<>();
+            removedLiterals.add(strategyLiterals.get(i));
+
+            deepUpScores[i] = UP(2, instance, toUnitPropagate, new HashMap<>(), removedLiterals);
         }
 
         int argmax = 0;
