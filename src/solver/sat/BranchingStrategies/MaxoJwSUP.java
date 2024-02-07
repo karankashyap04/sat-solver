@@ -11,7 +11,7 @@ import java.util.Set;
  * & Littman, M.
  * (https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=5c33e9abec94c4093742f23683abd357d48991c6)
  */
-public class MaxoJwSUP {
+public class MaxoJwSUP implements BranchingStrategy {
     @Override
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
         if (instance.clauses.isEmpty()) {
