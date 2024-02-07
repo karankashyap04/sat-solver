@@ -3,15 +3,12 @@ package solver.sat.BranchingStrategies;
 import solver.sat.NoVariableFoundException;
 import solver.sat.SATInstance;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * Implements a modified SUP branching strategy as per Lagoudakis, M.
- * & Littman, M.
- * (https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=5c33e9abec94c4093742f23683abd357d48991c6)
- */
-public class DeepSUP implements BranchingStrategy {
-
+public class AdaptiveDeepSUP implements BranchingStrategy {
     private int UP(int depth, SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
         if (depth == 0 || toUnitPropagate.isEmpty()) {
             return 0;
