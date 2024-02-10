@@ -27,6 +27,7 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
                 break;
             }
             if (clauseSize == 1) {
+//                System.out.println("size is 1 error");
                 for (Integer literal : instance.clauses.get(i)) {
                     if (
                             !toUnitPropagate.contains(literal)
@@ -38,11 +39,12 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
 
 //                        System.out.println("Unit propagation literal not in toUnitPropagate");
 //                        System.out.println("Removed: " + removedLiterals + ", Clause: " + instance.clauses.get(i));
-                        nextUnitPropagations.add(literal);
+//                        nextUnitPropagations.add(literal);
+//                        System.out.println("removed");
                         break;
                     }
                 }
-                continue;
+//                continue;
             }
             // go through things to be unit propagated. if contained here, remove this clause
             for (Integer literal : toUnitPropagate) {
@@ -80,10 +82,12 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
             throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
         }
 
+        int[] sampleIndices = BranchingStrategy.getSampleIndices(instance);
+
         Integer maxoLiteral = new MaxOccurrences().pickBranchingVariable(instance);
         Integer momsLiteral = new MaxOccurrencesMinSize().pickBranchingVariable(instance);
         Integer mamsLiteral = new MAMS().pickBranchingVariable(instance);
-        Integer jwLiteral = new JeroslawWang().pickBranchingVariable(instance);
+        Integer jwLiteral = new JeroslawWangSampled(sampleIndices).pickBranchingVariable(instance);
 
         int MAXO = 0, MOMS = 1, MAMS = 2, JW = 3; // constants for strategies
         Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral, MAMS, mamsLiteral, JW, jwLiteral);

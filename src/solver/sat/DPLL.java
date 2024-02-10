@@ -139,9 +139,9 @@ public class DPLL {
     }
 
     private  DPLLResult dpllInternal(SATInstance instance, Model model) {
-        System.out.println("num clauses: " + instance.clauses.size());
-        System.out.println("num unit clauses: " + instance.unitClauses.size());
-        System.out.println("num pure literals: " + instance.pureSymbols.size());
+//        System.out.println("num clauses: " + instance.clauses.size());
+//        System.out.println("num unit clauses: " + instance.unitClauses.size());
+//        System.out.println("num pure literals: " + instance.pureSymbols.size());
         if (isSAT(instance)) {
             return new DPLLResult(instance, model, true);
         }
