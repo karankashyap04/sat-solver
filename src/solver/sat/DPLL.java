@@ -91,6 +91,12 @@ public class DPLL {
                     throw new EmptyClauseFoundException("empty clause found!");
                 }
                 updatedClauses.add(clause);
+                if (clause.size() == 1) {
+                    for (Integer unitLiteral : clause) {
+                        instance.unitClauses.add(unitLiteral);
+                        break;
+                    }
+                }
             }
             else if (!clause.contains(literal)) {
                 updatedClauses.add(clause);
