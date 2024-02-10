@@ -7,11 +7,9 @@ import java.util.*;
 public class DPLL {
 
     BranchingStrategy branchingStrategy;
-    List<Integer> currentUnitClauses;
 
     public DPLL(BranchingStrategy branchingStrategy) {
         this.branchingStrategy = branchingStrategy;
-        this.currentUnitClauses = new ArrayList<>();
     }
 
     private Set<Integer> findPureSymbols(SATInstance instance) {
@@ -69,32 +67,12 @@ public class DPLL {
         return 0;
     }
 
-    private List<Integer> findUnitClauses(SATInstance instance) {
-        // NOTE: this is meant to just be called once at the beginning to find the initial unit clauses
-        List<Integer> unitClauses = new ArrayList<>();
-        for (Set<Integer> clause : instance.clauses) {
-            if (clause.size() == 1) {
-                for (Integer literal : clause) {
-                    unitClauses.add(literal);
-                    break;
-                }
-            }
-        }
-        return unitClauses;
-    }
-
     private void propagateUnitClause(SATInstance instance, Integer literal, Model model) {
         List<Set<Integer>> updatedClauses = new ArrayList<>();
         for (Set<Integer> clause : instance.clauses) {
             if (clause.contains(-literal)) {
                 clause.remove(-literal);
                 updatedClauses.add(clause);
-                if (clause.size() == 1) {
-                    for (Integer unitSymbol : clause) {
-                        this.currentUnitClauses.add(unitSymbol);
-                        break;
-                    }
-                }
             }
             else if (!clause.contains(literal)) {
                 updatedClauses.add(clause);
@@ -123,13 +101,13 @@ public class DPLL {
         }
         return false;
     }
-    
+
     private boolean isSAT(SATInstance instance) {
         // checks if guaranteed to be sat already
         return instance.clauses.size() == 0;
     }
 
-    private DPLLResult dpllInternal(SATInstance instance, Model model) {
+    public DPLLResult dpll(SATInstance instance, Model model) {
         if (isSAT(instance)) {
             return new DPLLResult(instance, model, true);
         }
@@ -138,28 +116,18 @@ public class DPLL {
             return new DPLLResult(instance, model, false);
         }
 
-        boolean propagatedUnitClause = false;
-        while (!this.currentUnitClauses.isEmpty()) {
-            Integer unitSymbol = this.currentUnitClauses.remove(this.currentUnitClauses.size() - 1);
-            this.propagateUnitClause(instance, unitSymbol, model);
-            propagatedUnitClause = true;
-        }
-        if (propagatedUnitClause) {
-            return dpllInternal(instance, model);
-        }
-
         // TODO: mess with order of pure/unit symbols
         Set<Integer> pureSymbols = findPureSymbols(instance);
         if (!pureSymbols.isEmpty()) {
             propagatePureSymbols(pureSymbols, instance, model);
-            return dpllInternal(instance, model);
+            return dpll(instance, model);
         }
 
-//        Integer unitSymbol = findUnitClause(instance);
-//        if (unitSymbol != 0) {
-//            propagateUnitClause(instance, unitSymbol, model);
-//            return dpll(instance,model);
-//        }
+        Integer unitSymbol = findUnitClause(instance);
+        if (unitSymbol != 0) {
+            propagateUnitClause(instance, unitSymbol, model);
+            return dpll(instance,model);
+        }
 
         try {
             Integer branchVariable = this.branchingStrategy.pickBranchingVariable(instance);
@@ -187,17 +155,12 @@ public class DPLL {
             negativeInstance.numClauses ++;
             propagateUnitClause(negativeInstance, -1 * branchVariable, negativeModel);
 
-            return dpllInternal(negativeInstance, negativeModel);
+            return dpll(negativeInstance, negativeModel);
         }
         catch (NoVariableFoundException e) {
             System.out.println(e.getMessage());
             return null;
         }
 
-    }
-
-    public DPLLResult dpll(SATInstance instance, Model model) {
-        this.currentUnitClauses = this.findUnitClauses(instance);
-        return this.dpllInternal(instance, model);
     }
 }
