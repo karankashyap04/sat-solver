@@ -1,9 +1,6 @@
 package solver.sat;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A simple class to represent a SAT instance.
@@ -20,6 +17,12 @@ public class SATInstance {
 
     // The list of clauses
     public List<Set<Integer>> clauses = new ArrayList<Set<Integer>>();
+
+    public Map<Integer, Integer> literalCounts = new HashMap<>();
+
+    public Set<Integer> pureSymbols = new HashSet<>();
+
+    public List<Integer> unitClauses = new ArrayList<>();
 
     public SATInstance(int numVars, int numClauses) {
         this.numVars = numVars;
@@ -44,6 +47,16 @@ public class SATInstance {
         return buf.toString();
     }
 
+    public void reduceLiteralCount(Integer literal) {
+        Integer literalCount = this.literalCounts.getOrDefault(literal, 0);
+        if (literalCount == 0)
+            return;
+        if (literalCount == 1)
+            this.literalCounts.remove(literal);
+        else
+            this.literalCounts.put(literal, literalCount - 1);
+    }
+
     public SATInstance copy() {
         SATInstance result = new SATInstance(this.numVars, this.numClauses);
         result.vars = new HashSet<>(this.vars);
@@ -51,6 +64,9 @@ public class SATInstance {
         for (Set<Integer> clause : this.clauses) {
             result.clauses.add(new HashSet<>(clause));
         }
+        result.literalCounts = new HashMap<>(this.literalCounts);
+        result.pureSymbols = new HashSet<>(this.pureSymbols);
+        result.unitClauses = new ArrayList<>(this.unitClauses);
         return result;
     }
 

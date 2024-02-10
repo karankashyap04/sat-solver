@@ -12,24 +12,24 @@ public class DPLL {
         this.branchingStrategy = branchingStrategy;
     }
 
-    private Set<Integer> findPureSymbols(SATInstance instance) {
-        // TODO: write this!!
-        HashSet<Integer> pureSymbols = new HashSet<>();
-        HashSet<Integer> removed = new HashSet<>();
-
-        for (Set<Integer> clause : instance.clauses) {
-            for (Integer var : clause) {
-                if (removed.contains(var) || removed.contains(-var)) {
-                    continue;
-                } else if (pureSymbols.contains(-var)) {
-                    pureSymbols.remove(-var);
-                    removed.add(-var);
-                } else pureSymbols.add(var);
-            }
-        }
-
-        return pureSymbols;
-    }
+//    private Set<Integer> findPureSymbols(SATInstance instance) {
+//        // TODO: write this!!
+//        HashSet<Integer> pureSymbols = new HashSet<>();
+//        HashSet<Integer> removed = new HashSet<>();
+//
+//        for (Set<Integer> clause : instance.clauses) {
+//            for (Integer var : clause) {
+//                if (removed.contains(var) || removed.contains(-var)) {
+//                    continue;
+//                } else if (pureSymbols.contains(-var)) {
+//                    pureSymbols.remove(-var);
+//                    removed.add(-var);
+//                } else pureSymbols.add(var);
+//            }
+//        }
+//
+//        return pureSymbols;
+//    }
 
     private void propagatePureSymbols(Set<Integer> pureSymbols, SATInstance instance, Model model) {
         List<Set<Integer>> updatedClauses = new ArrayList<>();
@@ -44,6 +44,10 @@ public class DPLL {
             }
             if (keepClause) {
                 updatedClauses.add(clause);
+            } else {
+                for (Integer literal : clause) {
+                    instance.reduceLiteralCount(literal);
+                }
             }
         }
         model.model.addAll(pureSymbols); // TODO: create a setModel method
@@ -54,28 +58,46 @@ public class DPLL {
         }
     }
 
-    private Integer findUnitClause(SATInstance instance) {
-        // TODO: maybe find all unit clauses?? and propagate them all??
-        // NOTE: returns 0 if no unit clause is found
+//    private Integer findUnitClause(SATInstance instance) {
+//        // TODO: maybe find all unit clauses?? and propagate them all??
+//        // NOTE: returns 0 if no unit clause is found
+//        for (Set<Integer> clause : instance.clauses) {
+//            if (clause.size() == 1) {
+//                for (Integer var : clause) {
+//                    return var;
+//                }
+//            }
+//        }
+//        return 0;
+//    }
+    private void findUnitClauses(SATInstance instance) {
         for (Set<Integer> clause : instance.clauses) {
             if (clause.size() == 1) {
-                for (Integer var : clause) {
-                    return var;
+                for (Integer literal : clause) {
+                    instance.unitClauses.add(literal);
+                    break;
                 }
             }
         }
-        return 0;
     }
 
-    private void propagateUnitClause(SATInstance instance, Integer literal, Model model) {
+    private void propagateUnitClause(SATInstance instance, Integer literal, Model model) throws EmptyClauseFoundException {
         List<Set<Integer>> updatedClauses = new ArrayList<>();
         for (Set<Integer> clause : instance.clauses) {
             if (clause.contains(-literal)) {
                 clause.remove(-literal);
+                instance.reduceLiteralCount(-literal);
+                if (clause.isEmpty()) {
+                    throw new EmptyClauseFoundException("empty clause found!");
+                }
                 updatedClauses.add(clause);
             }
             else if (!clause.contains(literal)) {
                 updatedClauses.add(clause);
+            } else {
+                for (Integer clauseLiteral : clause) {
+                    instance.reduceLiteralCount(clauseLiteral);
+                }
             }
         }
         model.model.add(literal); // TODO: create a setModel method
@@ -107,27 +129,42 @@ public class DPLL {
         return instance.clauses.size() == 0;
     }
 
-    public DPLLResult dpll(SATInstance instance, Model model) {
+    private  DPLLResult dpllInternal(SATInstance instance, Model model) {
         if (isSAT(instance)) {
             return new DPLLResult(instance, model, true);
         }
 
-        if (hasEmptyClause(instance)) {
+//        if (hasEmptyClause(instance)) {
+//            return new DPLLResult(instance, model, false);
+//        }
+
+//        // TODO: mess with order of pure/unit symbols
+//        Set<Integer> pureSymbols = findPureSymbols(instance);
+//        if (!pureSymbols.isEmpty()) {
+//            propagatePureSymbols(pureSymbols, instance, model);
+//            return dpll(instance, model);
+//        }
+        if (!instance.pureSymbols.isEmpty()) {
+            propagatePureSymbols(instance.pureSymbols, instance, model);
+            instance.pureSymbols.clear();
+            return dpllInternal(instance, model);
+        }
+
+        try {
+            if (!instance.unitClauses.isEmpty()) {
+                Integer unitLiteral = instance.unitClauses.remove(instance.unitClauses.size() - 1);
+                propagateUnitClause(instance, unitLiteral, model);
+                return dpllInternal(instance, model);
+            }
+        } catch (EmptyClauseFoundException e) { // UNSAT
             return new DPLLResult(instance, model, false);
         }
 
-        // TODO: mess with order of pure/unit symbols
-        Set<Integer> pureSymbols = findPureSymbols(instance);
-        if (!pureSymbols.isEmpty()) {
-            propagatePureSymbols(pureSymbols, instance, model);
-            return dpll(instance, model);
-        }
-
-        Integer unitSymbol = findUnitClause(instance);
-        if (unitSymbol != 0) {
-            propagateUnitClause(instance, unitSymbol, model);
-            return dpll(instance,model);
-        }
+//        Integer unitSymbol = findUnitClause(instance);
+//        if (unitSymbol != 0) {
+//            propagateUnitClause(instance, unitSymbol, model);
+//            return dpll(instance,model);
+//        }
 
         try {
             Integer branchVariable = this.branchingStrategy.pickBranchingVariable(instance);
@@ -138,10 +175,12 @@ public class DPLL {
             Set<Integer> positiveUnitClause = new HashSet<>();
             positiveUnitClause.add(branchVariable);
             positiveInstance.addClause(positiveUnitClause);
+            positiveInstance.literalCounts.put(branchVariable, positiveInstance.literalCounts.getOrDefault(branchVariable, 0) + 1);
             positiveInstance.numClauses ++;
-            propagateUnitClause(positiveInstance, branchVariable, positiveModel);
+            positiveInstance.unitClauses.add(branchVariable);
+//            propagateUnitClause(positiveInstance, branchVariable, positiveModel);
 
-            DPLLResult positiveAssumptionResult = dpll(positiveInstance, positiveModel);
+            DPLLResult positiveAssumptionResult = dpllInternal(positiveInstance, positiveModel);
             if (positiveAssumptionResult.isSAT) {
                 return positiveAssumptionResult;
             }
@@ -152,15 +191,41 @@ public class DPLL {
             Set<Integer> negativeUnitClause = new HashSet<>();
             negativeUnitClause.add(-1 * branchVariable);
             negativeInstance.addClause(negativeUnitClause);
+            negativeInstance.literalCounts.put(-branchVariable, negativeInstance.literalCounts.getOrDefault(-branchVariable, 0) + 1);
             negativeInstance.numClauses ++;
-            propagateUnitClause(negativeInstance, -1 * branchVariable, negativeModel);
+            negativeInstance.unitClauses.add(-branchVariable);
+//            propagateUnitClause(negativeInstance, -1 * branchVariable, negativeModel);
 
-            return dpll(negativeInstance, negativeModel);
+            return dpllInternal(negativeInstance, negativeModel);
         }
         catch (NoVariableFoundException e) {
             System.out.println(e.getMessage());
             return null;
         }
 
+    }
+
+    public DPLLResult dpll(SATInstance instance, Model model) {
+        if (hasEmptyClause(instance)) {
+            return new DPLLResult(instance, model, false);
+        }
+
+        // finding pure symbols
+        for (Set<Integer> clause : instance.clauses) {
+            for (Integer literal : clause) {
+                Integer literalCount = instance.literalCounts.getOrDefault(literal, 0);
+                instance.literalCounts.put(literal, literalCount + 1);
+                if (instance.literalCounts.containsKey(-literal)) {
+                    instance.pureSymbols.remove(literal);
+                    instance.pureSymbols.remove(-literal);
+                } else {
+                    instance.pureSymbols.add(literal);
+                }
+            }
+        }
+
+        findUnitClauses(instance);
+
+        return this.dpllInternal(instance, model);
     }
 }

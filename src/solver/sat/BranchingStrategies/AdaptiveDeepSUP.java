@@ -22,8 +22,8 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
                 continue;
             }
             if (clauseSize < 0) {
-                System.out.println("Negative clause size.");
-                System.out.println("Removed: " + removedLiterals + ", Clause: " + instance.clauses.get(i));
+//                System.out.println("Negative clause size.");
+//                System.out.println("Removed: " + removedLiterals + ", Clause: " + instance.clauses.get(i));
                 break;
             }
             if (clauseSize == 1) {
@@ -36,8 +36,8 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
                         // throw error
 //                        System.out.println("Removed literals: " + removedLiterals + ", Literal: " + literal);
 
-                        System.out.println("Unit propagation literal not in toUnitPropagate");
-                        System.out.println("Removed: " + removedLiterals + ", Clause: " + instance.clauses.get(i));
+//                        System.out.println("Unit propagation literal not in toUnitPropagate");
+//                        System.out.println("Removed: " + removedLiterals + ", Clause: " + instance.clauses.get(i));
                         nextUnitPropagations.add(literal);
                         break;
                     }
