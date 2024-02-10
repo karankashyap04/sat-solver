@@ -97,6 +97,9 @@ public class DPLL {
             } else {
                 for (Integer clauseLiteral : clause) {
                     instance.reduceLiteralCount(clauseLiteral);
+                    if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)) {
+                        instance.pureSymbols.add(-clauseLiteral);
+                    }
                 }
             }
         }
@@ -130,6 +133,9 @@ public class DPLL {
     }
 
     private  DPLLResult dpllInternal(SATInstance instance, Model model) {
+        System.out.println("num clauses: " + instance.clauses.size());
+        System.out.println("num unit clauses: " + instance.unitClauses.size());
+        System.out.println("num pure literals: " + instance.pureSymbols.size());
         if (isSAT(instance)) {
             return new DPLLResult(instance, model, true);
         }
