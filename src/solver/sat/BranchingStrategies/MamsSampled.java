@@ -10,6 +10,12 @@ import java.util.Set;
 
 public class MamsSampled implements BranchingStrategy {
 
+    private int[] sampleIndices;
+
+    public MamsSampled(int[] sampleIndices) {
+        this.sampleIndices = sampleIndices;
+    }
+
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
         if (instance.clauses.isEmpty()) {
             // pickBranchingVariable should never be called if this is the case (already SAT!)
@@ -21,7 +27,9 @@ public class MamsSampled implements BranchingStrategy {
         int maxScore = Integer.MIN_VALUE;
 
         // MAXO
-        for (Set<Integer> clause : instance.clauses) { // NOTE: clauses shouldn't be empty
+//        for (Set<Integer> clause : instance.clauses) { // NOTE: clauses shouldn't be empty
+        for (int sampleIdx : this.sampleIndices) {
+            Set<Integer> clause = instance.clauses.get(sampleIdx);
             for (Integer literal : clause) {
                 literalScores.put(literal, 1 + literalScores.getOrDefault(literal, 0));
                 int var = literal < 0 ? -literal : literal; // variable for this literal
