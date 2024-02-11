@@ -105,7 +105,7 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
             }
 
             // adapt depth based on average expression length
-            deepUpScores[i] = UP(Math.min((int)(expressionLength / Double.valueOf(instance.getNumClauses())), instance.getNumVars()), instance, toUnitPropagate, new HashMap<>(), removedLiterals);
+            deepUpScores[i] = UP(Math.min((int)(expressionLength / (2 * Double.valueOf(instance.getNumClauses()))), instance.getNumVars()), instance, toUnitPropagate, new HashMap<>(), removedLiterals);
         }
 
         int argmax = 0;
