@@ -7,14 +7,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 
-import java.math.*;
-
-public class AdaptiveDeepSUP implements BranchingStrategy {
-    private int UP(int depth, SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
-        if (depth == 0 || toUnitPropagate.isEmpty()) {
-            return 0;
-        }
+public class AdaptiveDeepSupNShortest implements BranchingStrategy {
+    private int UP(SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
         Set<Integer> nextUnitPropagations = new HashSet<>();
         for (int i = 0; i < instance.clauses.size(); i++) {
             int clauseSize = instance.clauses.get(i).size() - clauseLiteralRemoveCount.getOrDefault(i, 0);
@@ -72,7 +68,7 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
             }
         }
 
-        return nextUnitPropagations.size() + UP(depth-1, instance, nextUnitPropagations, clauseLiteralRemoveCount, removedLiterals);
+        return nextUnitPropagations.size();
     }
 
     @Override
@@ -82,16 +78,15 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
             throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
         }
 
-        int[] sampleIndices = BranchingStrategy.getSampleIndices(instance);
+        Map<Integer, List<Integer>> clausesOfSize = MOMSIndices.getSizeIndices(instance);
+        int[] sampleIndices = BranchingStrategy.getShortestSampleIndices(instance, clausesOfSize);
 
         Integer maxoLiteral = new MaxOccurrences().pickBranchingVariable(instance);
-        Integer momsLiteral = new MaxOccurrencesMinSize().pickBranchingVariable(instance);
+        Integer momsLiteral = new MOMSIndices(clausesOfSize).pickBranchingVariable(instance);
 //        Integer mamsLiteral = new MamsSampled(sampleIndices).pickBranchingVariable(instance);
 //        Integer jwLiteral = new JeroslawWangSampled(sampleIndices).pickBranchingVariable(instance);
 
-//        int MAXO = 0, MOMS = 1, MAMS = 2, JW = 3; // constants for strategies
-        int MAXO = 0, MOMS = 1;
-//        Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral, MAMS, mamsLiteral, JW, jwLiteral);
+        int MAXO = 0, MOMS = 1; // constants for strategies
         Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral);
         int[]deepUpScores = new int[2];
         for (int i = 0; i < 2; i++) {
@@ -107,7 +102,7 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
             }
 
             // adapt depth based on average expression length
-            deepUpScores[i] = UP(1, instance, toUnitPropagate, new HashMap<>(), removedLiterals);
+            deepUpScores[i] = UP(instance, toUnitPropagate, new HashMap<>(), removedLiterals);
         }
 
         int argmax = 0;

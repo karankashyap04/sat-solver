@@ -3,9 +3,7 @@ package solver.sat.BranchingStrategies;
 import solver.sat.NoVariableFoundException;
 import solver.sat.SATInstance;
 
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public interface BranchingStrategy {
 
@@ -33,6 +31,26 @@ public interface BranchingStrategy {
         for (int i = 0; i < sampleSize; i++) {
             sampleIndices[i] = i;
         }
+        return sampleIndices;
+    }
+
+    static int[] getShortestSampleIndices(SATInstance instance, Map<Integer, List<Integer>> clausesOfSize) {
+        int totalSampled = 0;
+        int sampleSize = Math.min(Math.max(100, instance.clauses.size() / 10), instance.clauses.size());
+        int[] sampleIndices = new int[sampleSize];
+        int sampleIndex = 0;
+
+        outer: for (int i = 1; i < clausesOfSize.size(); i++) {
+            if (totalSampled == sampleSize) break;
+
+            for (Integer ind : clausesOfSize.getOrDefault(i, new ArrayList<>())) {
+                sampleIndices[sampleIndex] = ind;
+                sampleIndex ++;
+                totalSampled ++;
+                if (totalSampled == sampleSize) break outer;
+            }
+        }
+
         return sampleIndices;
     }
 }
