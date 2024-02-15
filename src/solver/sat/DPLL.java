@@ -47,6 +47,7 @@ public class DPLL {
             } else {
                 for (Integer literal : clause) {
                     instance.reduceLiteralCount(literal);
+                    instance.reduceVarCount(literal);
                 }
             }
         }
@@ -55,6 +56,8 @@ public class DPLL {
         for (Integer pureSymbol : pureSymbols) {
             instance.numVars --;
             instance.vars.remove((pureSymbol < 0) ? -1 * pureSymbol : pureSymbol);
+
+            instance.sortedVarCounts.remove(pureSymbol < 0 ? -pureSymbol : pureSymbol);
         }
     }
 
@@ -87,6 +90,7 @@ public class DPLL {
             if (clause.contains(-literal)) {
                 clause.remove(-literal);
                 instance.reduceLiteralCount(-literal);
+                instance.reduceVarCount(literal);
                 if (clause.isEmpty()) {
                     throw new EmptyClauseFoundException("empty clause found!");
                 }
@@ -103,6 +107,7 @@ public class DPLL {
             } else {
                 for (Integer clauseLiteral : clause) {
                     instance.reduceLiteralCount(clauseLiteral);
+                    instance.reduceVarCount(clauseLiteral);
                     if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)) {
                         instance.pureSymbols.add(-clauseLiteral);
                     }
@@ -113,6 +118,7 @@ public class DPLL {
         instance.clauses = updatedClauses; // TODO: maybe create a setClauses method
         instance.numClauses = updatedClauses.size();
         instance.vars.remove(literal < 0 ? -literal : literal);
+        instance.sortedVarCounts.remove(literal < 0 ? -literal : literal);
         instance.numVars--;
     }
 
@@ -237,6 +243,12 @@ public class DPLL {
         }
 
         findUnitClauses(instance);
+
+        // populate var counts tree map
+        for (Integer var : instance.vars) {
+            Integer varScore = instance.literalCounts.getOrDefault(var, 0) + instance.literalCounts.getOrDefault(-var, 0);
+            instance.sortedVarCounts.put(var, varScore);
+        }
 
         return this.dpllInternal(instance, model);
     }

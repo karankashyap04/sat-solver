@@ -20,6 +20,13 @@ public class SATInstance {
 
     public Map<Integer, Integer> literalCounts = new HashMap<>();
 
+    public TreeMap<Integer, Integer> sortedVarCounts = new TreeMap<>(new Comparator<Integer>() {
+        @Override
+        public int compare(Integer o1, Integer o2) {
+            return o2 - o1; // sort in decreasing order
+        }
+    });
+
     public Set<Integer> pureSymbols = new HashSet<>();
 
     public List<Integer> unitClauses = new ArrayList<>();
@@ -57,6 +64,13 @@ public class SATInstance {
             this.literalCounts.put(literal, literalCount - 1);
     }
 
+    public void reduceVarCount(Integer literal) {
+        Integer var = literal < 0 ? -literal : literal;
+        int newVarScore = this.sortedVarCounts.remove(var) - 1;
+        if (newVarScore > 0)
+            this.sortedVarCounts.put(var, newVarScore);
+    }
+
     public SATInstance copy() {
         SATInstance result = new SATInstance(this.numVars, this.numClauses);
         result.vars = new HashSet<>(this.vars);
@@ -67,6 +81,7 @@ public class SATInstance {
         result.literalCounts = new HashMap<>(this.literalCounts);
         result.pureSymbols = new HashSet<>(this.pureSymbols);
         result.unitClauses = new ArrayList<>(this.unitClauses);
+        result.sortedVarCounts = (TreeMap<Integer, Integer>) this.sortedVarCounts.clone();
         return result;
     }
 
