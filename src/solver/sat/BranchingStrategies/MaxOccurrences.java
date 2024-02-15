@@ -69,27 +69,27 @@ public class MaxOccurrences implements BranchingStrategy {
 //        }
 //        return -maxOccurrenceVar;
 //    }
-public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
-    if (instance.clauses.isEmpty() || instance.sortedVarCounts.isEmpty()) {
-        // pickBranchingVariable should never be called if this is the case (already SAT!)
-        throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
-    }
+    public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
+        if (instance.clauses.isEmpty() || instance.sortedVarCounts.isEmpty()) {
+            // pickBranchingVariable should never be called if this is the case (already SAT!)
+            throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
+        }
 
-    Set<Integer> maxOccurrenceVars = instance.sortedVarCounts.get(instance.sortedVarCounts.firstKey());
-    if (maxOccurrenceVars.isEmpty()) {
-        System.out.println("empty set included in tree map!");
-        return -1;
-    }
-    int maxOccurrenceVar = -1;
-    for (Integer var : maxOccurrenceVars) {
-        maxOccurrenceVar = var;
-        break;
-    }
+        Set<Integer> maxOccurrenceVars = instance.sortedVarCounts.get(instance.sortedVarCounts.firstKey());
+        if (maxOccurrenceVars.isEmpty()) {
+            System.out.println("empty set included in tree map!");
+            return -1;
+        }
+        int maxOccurrenceVar = -1;
+        for (Integer var : maxOccurrenceVars) {
+            maxOccurrenceVar = var;
+            break;
+        }
 
-    // want to return the literal for this variable with the lower score (var vs. -var)
-    if (instance.literalCounts.getOrDefault(maxOccurrenceVar, 0) >= instance.literalCounts.getOrDefault(-maxOccurrenceVar, 0)) {
-        return maxOccurrenceVar;
+        // want to return the literal for this variable with the lower score (var vs. -var)
+        if (instance.literalCounts.getOrDefault(maxOccurrenceVar, 0) >= instance.literalCounts.getOrDefault(-maxOccurrenceVar, 0)) {
+            return maxOccurrenceVar;
+        }
+        return -maxOccurrenceVar;
     }
-    return -maxOccurrenceVar;
-}
 }
