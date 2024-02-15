@@ -46,27 +46,50 @@ import java.util.Set;
 
 public class MaxOccurrences implements BranchingStrategy {
 
-    public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
-        if (instance.clauses.isEmpty()) {
-            // pickBranchingVariable should never be called if this is the case (already SAT!)
-            throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
-        }
-
-        int maxOccurrenceVar = 0;
-        int maxOccurrenceVarScore = 0;
-
-        for (Integer literal : instance.literalCounts.keySet()) {
-            int score = instance.literalCounts.getOrDefault(literal, 0) + instance.literalCounts.getOrDefault(-literal, 0);
-            if (maxOccurrenceVarScore == 0 || score > maxOccurrenceVarScore) {
-                maxOccurrenceVar = literal < 0 ? -literal : literal;
-                maxOccurrenceVarScore = score;
-            }
-        }
-
-        // want to return the literal for this variable with the lower score (var vs. -var)
-        if (instance.literalCounts.getOrDefault(maxOccurrenceVar, 0) >= instance.literalCounts.getOrDefault(-maxOccurrenceVar, 0)) {
-            return maxOccurrenceVar;
-        }
-        return -maxOccurrenceVar;
+//    public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
+//        if (instance.clauses.isEmpty()) {
+//            // pickBranchingVariable should never be called if this is the case (already SAT!)
+//            throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
+//        }
+//
+//        int maxOccurrenceVar = 0;
+//        int maxOccurrenceVarScore = 0;
+//
+//        for (Integer literal : instance.literalCounts.keySet()) {
+//            int score = instance.literalCounts.getOrDefault(literal, 0) + instance.literalCounts.getOrDefault(-literal, 0);
+//            if (maxOccurrenceVarScore == 0 || score > maxOccurrenceVarScore) {
+//                maxOccurrenceVar = literal < 0 ? -literal : literal;
+//                maxOccurrenceVarScore = score;
+//            }
+//        }
+//
+//        // want to return the literal for this variable with the lower score (var vs. -var)
+//        if (instance.literalCounts.getOrDefault(maxOccurrenceVar, 0) >= instance.literalCounts.getOrDefault(-maxOccurrenceVar, 0)) {
+//            return maxOccurrenceVar;
+//        }
+//        return -maxOccurrenceVar;
+//    }
+public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
+    if (instance.clauses.isEmpty() || instance.sortedVarCounts.isEmpty()) {
+        // pickBranchingVariable should never be called if this is the case (already SAT!)
+        throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
     }
+
+    Set<Integer> maxOccurrenceVars = instance.sortedVarCounts.get(instance.sortedVarCounts.firstKey());
+    if (maxOccurrenceVars.isEmpty()) {
+        System.out.println("empty set included in tree map!");
+        return -1;
+    }
+    int maxOccurrenceVar = -1;
+    for (Integer var : maxOccurrenceVars) {
+        maxOccurrenceVar = var;
+        break;
+    }
+
+    // want to return the literal for this variable with the lower score (var vs. -var)
+    if (instance.literalCounts.getOrDefault(maxOccurrenceVar, 0) >= instance.literalCounts.getOrDefault(-maxOccurrenceVar, 0)) {
+        return maxOccurrenceVar;
+    }
+    return -maxOccurrenceVar;
+}
 }

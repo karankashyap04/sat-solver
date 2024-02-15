@@ -1,5 +1,7 @@
 package solver.sat;
 
+import com.sun.source.tree.Tree;
+
 import java.util.*;
 
 /**
@@ -20,7 +22,7 @@ public class SATInstance {
 
     public Map<Integer, Integer> literalCounts = new HashMap<>();
 
-    public TreeMap<Integer, Integer> sortedVarCounts = new TreeMap<>(new Comparator<Integer>() {
+    public TreeMap<Integer, Set<Integer>> sortedVarCounts = new TreeMap<>(new Comparator<Integer>() {
         @Override
         public int compare(Integer o1, Integer o2) {
             return o2 - o1; // sort in decreasing order
@@ -64,11 +66,27 @@ public class SATInstance {
             this.literalCounts.put(literal, literalCount - 1);
     }
 
-    public void reduceVarCount(Integer literal) {
+    //NOTE: for correctness, this would always have to be called before literalCounts is updated
+    public void updateVarCount(Integer literal, int updateBy) {
         Integer var = literal < 0 ? -literal : literal;
-        int newVarScore = this.sortedVarCounts.remove(var) - 1;
-        if (newVarScore > 0)
-            this.sortedVarCounts.put(var, newVarScore);
+        int varScore = this.literalCounts.getOrDefault(var, 0) + this.literalCounts.getOrDefault(-var, 0);
+        if (varScore != 0) {
+            Set<Integer> varScoreVars = this.sortedVarCounts.get(varScore);
+            varScoreVars.remove(var);
+            if (varScoreVars.isEmpty())
+                this.sortedVarCounts.remove(varScore);
+        }
+
+        int newVarScore = varScore + updateBy;
+        if (newVarScore <= 0)
+            return;
+        Set<Integer> newVarScoreVars = this.sortedVarCounts.get(newVarScore);
+        if (newVarScoreVars == null) {
+            newVarScoreVars = new HashSet<>();
+            newVarScoreVars.add(var);
+            this.sortedVarCounts.put(newVarScore, newVarScoreVars);
+        } else
+            newVarScoreVars.add(var);
     }
 
     public SATInstance copy() {
@@ -81,7 +99,10 @@ public class SATInstance {
         result.literalCounts = new HashMap<>(this.literalCounts);
         result.pureSymbols = new HashSet<>(this.pureSymbols);
         result.unitClauses = new ArrayList<>(this.unitClauses);
-        result.sortedVarCounts = (TreeMap<Integer, Integer>) this.sortedVarCounts.clone();
+        result.sortedVarCounts = new TreeMap<>();
+        for (Integer varCount : this.sortedVarCounts.keySet()) {
+            result.sortedVarCounts.put(varCount, new HashSet<>(this.sortedVarCounts.get(varCount)));
+        }
         return result;
     }
 

@@ -46,8 +46,8 @@ public class DPLL {
                 updatedClauses.add(clause);
             } else {
                 for (Integer literal : clause) {
+                    instance.updateVarCount(literal, -1);
                     instance.reduceLiteralCount(literal);
-                    instance.reduceVarCount(literal);
                 }
             }
         }
@@ -56,8 +56,6 @@ public class DPLL {
         for (Integer pureSymbol : pureSymbols) {
             instance.numVars --;
             instance.vars.remove((pureSymbol < 0) ? -1 * pureSymbol : pureSymbol);
-
-            instance.sortedVarCounts.remove(pureSymbol < 0 ? -pureSymbol : pureSymbol);
         }
     }
 
@@ -89,8 +87,8 @@ public class DPLL {
         for (Set<Integer> clause : instance.clauses) {
             if (clause.contains(-literal)) {
                 clause.remove(-literal);
+                instance.updateVarCount(literal, -1);
                 instance.reduceLiteralCount(-literal);
-                instance.reduceVarCount(literal);
                 if (clause.isEmpty()) {
                     throw new EmptyClauseFoundException("empty clause found!");
                 }
@@ -106,8 +104,8 @@ public class DPLL {
                 updatedClauses.add(clause);
             } else {
                 for (Integer clauseLiteral : clause) {
+                    instance.updateVarCount(clauseLiteral, -1);
                     instance.reduceLiteralCount(clauseLiteral);
-                    instance.reduceVarCount(clauseLiteral);
                     if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)) {
                         instance.pureSymbols.add(-clauseLiteral);
                     }
@@ -118,7 +116,6 @@ public class DPLL {
         instance.clauses = updatedClauses; // TODO: maybe create a setClauses method
         instance.numClauses = updatedClauses.size();
         instance.vars.remove(literal < 0 ? -literal : literal);
-        instance.sortedVarCounts.remove(literal < 0 ? -literal : literal);
         instance.numVars--;
     }
 
@@ -193,6 +190,7 @@ public class DPLL {
             Set<Integer> positiveUnitClause = new HashSet<>();
             positiveUnitClause.add(branchVariable);
             positiveInstance.addClause(positiveUnitClause);
+            positiveInstance.updateVarCount(branchVariable, 1);
             positiveInstance.literalCounts.put(branchVariable, positiveInstance.literalCounts.getOrDefault(branchVariable, 0) + 1);
             positiveInstance.numClauses ++;
             positiveInstance.unitClauses.add(branchVariable);
@@ -209,6 +207,7 @@ public class DPLL {
             Set<Integer> negativeUnitClause = new HashSet<>();
             negativeUnitClause.add(-1 * branchVariable);
             negativeInstance.addClause(negativeUnitClause);
+            negativeInstance.updateVarCount(-branchVariable, 1);
             negativeInstance.literalCounts.put(-branchVariable, negativeInstance.literalCounts.getOrDefault(-branchVariable, 0) + 1);
             negativeInstance.numClauses ++;
             negativeInstance.unitClauses.add(-branchVariable);
@@ -247,7 +246,13 @@ public class DPLL {
         // populate var counts tree map
         for (Integer var : instance.vars) {
             Integer varScore = instance.literalCounts.getOrDefault(var, 0) + instance.literalCounts.getOrDefault(-var, 0);
-            instance.sortedVarCounts.put(var, varScore);
+            Set<Integer> varScoreVars = instance.sortedVarCounts.get(varScore);
+            if (varScoreVars == null) {
+                varScoreVars = new HashSet<>();
+                varScoreVars.add(var);
+                instance.sortedVarCounts.put(varScore, varScoreVars);
+            } else
+                varScoreVars.add(var);
         }
 
         return this.dpllInternal(instance, model);
