@@ -66,6 +66,11 @@ public class SATInstance {
             this.literalCounts.put(literal, literalCount - 1);
     }
 
+    public void increaseLiteralCount(Integer literal) {
+        Integer literalCount = this.literalCounts.getOrDefault(literal, 0);
+        this.literalCounts.put(literal, 1 + literalCount);
+    }
+
     //NOTE: for correctness, this would always have to be called before literalCounts is updated
     public void updateVarCount(Integer literal, int updateBy) {
         Integer var = literal < 0 ? -literal : literal;
