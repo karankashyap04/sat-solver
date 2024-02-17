@@ -12,6 +12,10 @@ public class MamsSampled implements BranchingStrategy {
 
     private int[] sampleIndices;
 
+    @Override
+    public void setRemainingClauses(Set<Integer> remainingClauses) {
+    }
+
     public MamsSampled(int[] sampleIndices) {
         this.sampleIndices = sampleIndices;
     }
@@ -42,7 +46,7 @@ public class MamsSampled implements BranchingStrategy {
         }
 
         // MOMS
-        List<Set<Integer>> minSizeClauses = MaxOccurrencesMinSize.getMinSizeClauses(instance);
+        List<Set<Integer>> minSizeClauses = new MaxOccurrencesMinSize().getMinSizeClauses(instance);
         for (Set<Integer> clause : minSizeClauses) {
             for (Integer literal : clause) {
                 literalScores.put(literal, 1 + literalScores.getOrDefault(literal, 0));
