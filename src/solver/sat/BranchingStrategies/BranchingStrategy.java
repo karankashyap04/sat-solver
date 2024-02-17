@@ -9,6 +9,8 @@ public interface BranchingStrategy {
 
     Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException;
 
+//    void setRemainingClauses(Set<Integer> remainingClauses);
+
     static int[] getSampleIndices(SATInstance instance) {
         int sampleSize = Math.min(Math.max(100, instance.clauses.size() / 10), instance.clauses.size());
         int[] sampleIndices = new int[sampleSize];
@@ -32,6 +34,23 @@ public interface BranchingStrategy {
             sampleIndices[i] = i;
         }
         return sampleIndices;
+    }
+
+    public static Map<Integer, List<Integer>> getSizeIndices(SATInstance instance) {
+        Map<Integer, List<Integer>> clausesOfSize = new HashMap<>(); // size -> list of clauses
+        int currMinSize = Integer.MAX_VALUE;
+        for (int i = 0; i < instance.clauses.size(); i++) {
+            int size = instance.clauses.get(i).size();
+            if (!clausesOfSize.containsKey(size)) {
+                clausesOfSize.put(size, new ArrayList<>());
+            }
+            clausesOfSize.get(size).add(i);
+            if (size < currMinSize) {
+                currMinSize = size;
+            }
+        }
+
+        return clausesOfSize;
     }
 
     static int[] getShortestSampleIndices(SATInstance instance, Map<Integer, List<Integer>> clausesOfSize) {
