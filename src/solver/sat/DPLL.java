@@ -7,14 +7,16 @@ import java.util.*;
 public class DPLL {
 
     BranchingStrategy branchingStrategy;
-    Set<Integer> remainingClauses = new HashSet<>(); // indices of removed clauses
+    Set<Integer> remainingClauses = new HashSet<>();  // indices of removed clauses
     Map<Integer, Set<Integer>> removedLiterals = new HashMap<>(); // clause idx -> literals removed from the clause
     List<Set<Integer>> removedClauseStack = new ArrayList<>();
     List<Map<Integer, Set<Integer>>> removedLiteralsStack = new ArrayList<>();
     List<Set<Integer>> assignmentStack = new ArrayList<>();
 
     public DPLL(BranchingStrategy branchingStrategy) {
+
         this.branchingStrategy = branchingStrategy;
+        this.branchingStrategy.setRemainingClauses(this.remainingClauses);
     }
 
     private void propagatePureSymbols(Set<Integer> pureSymbols, SATInstance instance, Model model) {
@@ -266,8 +268,8 @@ public class DPLL {
         }
 
         findInitialUnitClauses(instance);
-        System.out.println("initial pure symbols: " + instance.pureSymbols);
-        System.out.println("initial unit clauses: " + instance.unitClauses);
+//        System.out.println("initial pure symbols: " + instance.pureSymbols);
+//        System.out.println("initial unit clauses: " + instance.unitClauses);
 
         // initialize stacks with empty elements (these initial elements should always remain on the stack -- never used
         // while backtracking etc since these are from before we ever branch)

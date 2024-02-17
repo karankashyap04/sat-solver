@@ -14,6 +14,10 @@ import java.util.Map;
 public class SUP implements BranchingStrategy{
 
     @Override
+    public void setRemainingClauses(Set<Integer> remainingClauses) {
+    }
+
+    @Override
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
         if (instance.clauses.isEmpty()) {
             // pickBranchingVariable should never be called if this is the case (already SAT!)

@@ -14,6 +14,10 @@ import solver.sat.NoVariableFoundException;
 import solver.sat.SATInstance;
 
 public class MAMS implements BranchingStrategy {
+    @Override
+    public void setRemainingClauses(Set<Integer> remainingClauses) {
+    }
+
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
         if (instance.clauses.isEmpty()) {
             // pickBranchingVariable should never be called if this is the case (already SAT!)
@@ -38,7 +42,7 @@ public class MAMS implements BranchingStrategy {
         }
 
         // MOMS
-        List<Set<Integer>> minSizeClauses = MaxOccurrencesMinSize.getMinSizeClauses(instance);
+        List<Set<Integer>> minSizeClauses = new MaxOccurrencesMinSize().getMinSizeClauses(instance);
         for (Set<Integer> clause : minSizeClauses) {
             for (Integer literal : clause) {
                 literalScores.put(literal, 1 + literalScores.getOrDefault(literal, 0));

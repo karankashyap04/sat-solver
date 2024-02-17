@@ -12,24 +12,13 @@ import java.util.ArrayList;
 public class MOMSIndices implements BranchingStrategy {
     Map<Integer, List<Integer>> clausesOfSize;
 
+    @Override
+    public void setRemainingClauses(Set<Integer> remainingClauses) {
+
+    }
+
     public MOMSIndices(Map<Integer, List<Integer>> clausesOfSize) {
         this.clausesOfSize = clausesOfSize;
-    }
-    public static Map<Integer, List<Integer>> getSizeIndices(SATInstance instance) {
-        Map<Integer, List<Integer>> clausesOfSize = new HashMap<>(); // size -> list of clauses
-        int currMinSize = Integer.MAX_VALUE;
-        for (int i = 0; i < instance.clauses.size(); i++) {
-            int size = instance.clauses.get(i).size();
-            if (!clausesOfSize.containsKey(size)) {
-                clausesOfSize.put(size, new ArrayList<>());
-            }
-            clausesOfSize.get(size).add(i);
-            if (size < currMinSize) {
-                currMinSize = size;
-            }
-        }
-
-        return clausesOfSize;
     }
 
     @Override

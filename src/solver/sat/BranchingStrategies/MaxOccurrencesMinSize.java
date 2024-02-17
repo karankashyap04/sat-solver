@@ -15,11 +15,18 @@ import java.util.ArrayList;
  * (https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=5c33e9abec94c4093742f23683abd357d48991c6)
  */
 public class MaxOccurrencesMinSize implements BranchingStrategy{
+    private Set<Integer> remainingClauses;
+
+    @Override
+    public void setRemainingClauses(Set<Integer> remainingClauses) {
+        this.remainingClauses = remainingClauses;
+    }
     
-    public static List<Set<Integer>> getMinSizeClauses(SATInstance instance) {
+    public List<Set<Integer>> getMinSizeClauses(SATInstance instance) {
         Map<Integer, List<Set<Integer>>> clausesOfSize = new HashMap<>(); // size -> list of clauses
         int currMinSize = Integer.MAX_VALUE;
-        for (Set<Integer> clause : instance.clauses) {
+        for (Integer clauseIdx : this.remainingClauses) {
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
             int size = clause.size();
             if (!clausesOfSize.containsKey(size)) {
                 clausesOfSize.put(size, new ArrayList<>());

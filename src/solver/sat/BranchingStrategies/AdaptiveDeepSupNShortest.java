@@ -10,6 +10,13 @@ import java.util.Set;
 import java.util.List;
 
 public class AdaptiveDeepSupNShortest implements BranchingStrategy {
+    private Set<Integer> remainingClauses;
+
+    @Override
+    public void setRemainingClauses(Set<Integer> remainingClauses) {
+        this.remainingClauses = remainingClauses;
+    }
+
     private int UP(SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
         Set<Integer> nextUnitPropagations = new HashSet<>();
         for (int i = 0; i < instance.clauses.size(); i++) {
@@ -78,11 +85,14 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
             throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
         }
 
-        Map<Integer, List<Integer>> clausesOfSize = MOMSIndices.getSizeIndices(instance);
-        int[] sampleIndices = BranchingStrategy.getShortestSampleIndices(instance, clausesOfSize);
+//        Map<Integer, List<Integer>> clausesOfSize = BranchingStrategy.getSizeIndices(instance);
+//        int[] sampleIndices = BranchingStrategy.getShortestSampleIndices(instance, clausesOfSize);
 
         Integer maxoLiteral = new MaxOccurrences().pickBranchingVariable(instance);
-        Integer momsLiteral = new MOMSIndices(clausesOfSize).pickBranchingVariable(instance);
+        MaxOccurrencesMinSize moms = new MaxOccurrencesMinSize();
+        moms.setRemainingClauses(remainingClauses);
+        Integer momsLiteral = moms.pickBranchingVariable(instance);
+//        Integer momsLiteral = new MOMSIndices(clausesOfSize).pickBranchingVariable(instance);
 //        Integer mamsLiteral = new MamsSampled(sampleIndices).pickBranchingVariable(instance);
 //        Integer jwLiteral = new JeroslawWangSampled(sampleIndices).pickBranchingVariable(instance);
 
