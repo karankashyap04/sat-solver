@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Implements the MOMS branching strategy as per Lagoudakis, M.
@@ -16,24 +17,24 @@ import java.util.ArrayList;
  */
 public class MaxOccurrencesMinSize implements BranchingStrategy{
 
-    Set<Integer> remainingClauses;
+    private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
 
-//    @Override
-    public void setRemainingClauses(Set<Integer> remainingClauses) {
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
         this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
     }
     
-    public List<Set<Integer>> getMinSizeClauses(SATInstance instance) {
-        Map<Integer, List<Set<Integer>>> clausesOfSize = new HashMap<>(); // size -> list of clauses
+    public Set<Integer> getMinSizeClauses(SATInstance instance) {
+        Map<Integer, Set<Integer>> clausesOfSize = new HashMap<>(); // size -> list of clause indices
         int currMinSize = Integer.MAX_VALUE;
-//        for (Set<Integer> clause : instance.clauses) {
         for (Integer clauseIdx : this.remainingClauses) {
             Set<Integer> clause = instance.clauses.get(clauseIdx);
-            int size = clause.size();
+            int size = clause.size() - this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>()).size();
             if (!clausesOfSize.containsKey(size)) {
-                clausesOfSize.put(size, new ArrayList<>());
+                clausesOfSize.put(size, new HashSet<>());
             }
-            clausesOfSize.get(size).add(clause);
+            clausesOfSize.get(size).add(clauseIdx);
             if (size < currMinSize) {
                 currMinSize = size;
             }
@@ -44,19 +45,23 @@ public class MaxOccurrencesMinSize implements BranchingStrategy{
 
     @Override
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
-        if (instance.clauses.isEmpty()) {
+        if (this.remainingClauses.isEmpty()) {
             // pickBranchingVariable should never be called if this is the case (already SAT!)
             throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
         }
 
-        List<Set<Integer>> minSizeClauses = this.getMinSizeClauses(instance);
+        Set<Integer> minSizeClauses = this.getMinSizeClauses(instance);
 
         Map<Integer, Integer> literalScores = new HashMap<>();
         int maxOccurrences = Integer.MIN_VALUE; // max occurrence var
         int maxVar = 0;
 
-        for (Set<Integer> clause : minSizeClauses) {
+        for (Integer clauseIdx : minSizeClauses) {
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
+            Set<Integer> clauseRemovedLiterals = this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>());
             for (Integer literal : clause) {
+                if (clauseRemovedLiterals.contains(literal))
+                    continue;
                 literalScores.put(literal, 1 + literalScores.getOrDefault(literal, 0));
                 int var = literal < 0 ? -literal : literal;
                 int varScore = literalScores.getOrDefault(literal, 0) + literalScores.getOrDefault(-literal,0);

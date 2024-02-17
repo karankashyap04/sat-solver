@@ -11,6 +11,14 @@ import java.util.Set;
 import java.math.*;
 
 public class AdaptiveDeepSUP implements BranchingStrategy {
+    private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
+
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
+        this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
+    }
+
     private int UP(int depth, SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
         if (depth == 0 || toUnitPropagate.isEmpty()) {
             return 0;

@@ -11,6 +11,13 @@ import java.util.*;
  * (https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=5c33e9abec94c4093742f23683abd357d48991c6)
  */
 public class DeepSUP implements BranchingStrategy {
+    private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
+
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
+        this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
+    }
 
     private int UP(int depth, SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
         if (depth == 0 || toUnitPropagate.isEmpty()) {

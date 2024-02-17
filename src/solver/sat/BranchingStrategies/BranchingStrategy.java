@@ -9,7 +9,7 @@ public interface BranchingStrategy {
 
     Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException;
 
-//    void setRemainingClauses(Set<Integer> remainingClauses);
+    void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals);
 
     static int[] getSampleIndices(SATInstance instance) {
         int sampleSize = Math.min(Math.max(100, instance.clauses.size() / 10), instance.clauses.size());

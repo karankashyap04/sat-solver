@@ -9,6 +9,13 @@ import java.util.Map;
 import java.util.Set;
 
 public class MamsSampled implements BranchingStrategy {
+    private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
+
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
+        this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
+    }
 
     private int[] sampleIndices;
 
@@ -42,8 +49,9 @@ public class MamsSampled implements BranchingStrategy {
         }
 
         // MOMS
-        List<Set<Integer>> minSizeClauses = new MaxOccurrencesMinSize().getMinSizeClauses(instance);
-        for (Set<Integer> clause : minSizeClauses) {
+        Set<Integer> minSizeClauses = new MaxOccurrencesMinSize().getMinSizeClauses(instance);
+        for (Integer i : minSizeClauses) {
+            Set<Integer> clause = instance.clauses.get(i);
             for (Integer literal : clause) {
                 literalScores.put(literal, 1 + literalScores.getOrDefault(literal, 0));
                 int var = literal < 0 ? -literal : literal;

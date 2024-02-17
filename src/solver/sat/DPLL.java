@@ -15,6 +15,7 @@ public class DPLL {
 
     public DPLL(BranchingStrategy branchingStrategy) {
         this.branchingStrategy = branchingStrategy;
+        this.branchingStrategy.setContext(remainingClauses, removedLiterals);
     }
 
     private void propagatePureSymbols(Set<Integer> pureSymbols, SATInstance instance, Model model) {

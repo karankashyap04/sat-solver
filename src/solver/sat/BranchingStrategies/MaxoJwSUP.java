@@ -12,6 +12,14 @@ import java.util.Set;
  * (https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=5c33e9abec94c4093742f23683abd357d48991c6)
  */
 public class MaxoJwSUP implements BranchingStrategy {
+    private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
+
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
+        this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
+    }
+
     @Override
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
         if (instance.clauses.isEmpty()) {

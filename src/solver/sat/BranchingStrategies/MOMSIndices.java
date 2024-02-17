@@ -11,6 +11,13 @@ import java.util.ArrayList;
 
 public class MOMSIndices implements BranchingStrategy {
     Map<Integer, List<Integer>> clausesOfSize;
+    private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
+
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
+        this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
+    }
 
     public MOMSIndices(Map<Integer, List<Integer>> clausesOfSize) {
         this.clausesOfSize = clausesOfSize;

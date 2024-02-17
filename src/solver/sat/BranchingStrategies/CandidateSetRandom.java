@@ -5,8 +5,17 @@ import solver.sat.SATInstance;
 
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class CandidateSetRandom implements BranchingStrategy{
+
+    private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
+
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
+        this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
+    }
 
     @Override
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {

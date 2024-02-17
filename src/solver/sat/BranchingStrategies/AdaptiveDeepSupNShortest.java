@@ -9,17 +9,24 @@ import java.util.Map;
 import java.util.Set;
 import java.util.List;
 
+/**
+ * Checks depth of 1 for unit propagations; selects literal leading to the most unit propagations.
+ */
 public class AdaptiveDeepSupNShortest implements BranchingStrategy {
     private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
 
-    public void setRemainingClauses(Set<Integer> remainingClauses) {
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
         this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
     }
 
     private int UP(SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
         Set<Integer> nextUnitPropagations = new HashSet<>();
-        for (int i = 0; i < instance.clauses.size(); i++) {
-            int clauseSize = instance.clauses.get(i).size() - clauseLiteralRemoveCount.getOrDefault(i, 0);
+        for (Integer i : this.remainingClauses) {
+            Set<Integer> clause = instance.clauses.get(i);
+            Set<Integer> clauseGlobalRemovedLiterals = this.globalRemovedLiterals.getOrDefault(i, new HashSet<>());
+            int clauseSize = clause.size() - clauseGlobalRemovedLiterals.size() - clauseLiteralRemoveCount.getOrDefault(i, 0);
             if (clauseSize == 0) {
                 continue;
             }
@@ -30,19 +37,15 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
             }
             if (clauseSize == 1) {
 //                System.out.println("size is 1 error");
-                for (Integer literal : instance.clauses.get(i)) {
+                for (Integer literal : clause) {
                     if (
                             !toUnitPropagate.contains(literal)
                                     && !toUnitPropagate.contains(-literal)
                                     && !removedLiterals.contains(literal)
-                                    && !removedLiterals.contains(-literal)) {
+                                    && !removedLiterals.contains(-literal)
+                                    && !clauseGlobalRemovedLiterals.contains(literal)) {
                         // throw error
-//                        System.out.println("Removed literals: " + removedLiterals + ", Literal: " + literal);
-
-//                        System.out.println("Unit propagation literal not in toUnitPropagate");
-//                        System.out.println("Removed: " + removedLiterals + ", Clause: " + instance.clauses.get(i));
-//                        nextUnitPropagations.add(literal);
-//                        System.out.println("removed");
+                        System.out.println("size is 1 error");
                         break;
                     }
                 }
@@ -50,12 +53,12 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
             }
             // go through things to be unit propagated. if contained here, remove this clause
             for (Integer literal : toUnitPropagate) {
-                if (instance.clauses.get(i).contains(literal)) {
+                if (instance.clauses.get(i).contains(literal) && !clauseGlobalRemovedLiterals.contains(literal)) {
                     // remove this clause
                     clauseLiteralRemoveCount.put(i, instance.clauses.get(i).size());
                     break;
                 }
-                if (instance.clauses.get(i).contains(-literal)) {
+                if (instance.clauses.get(i).contains(-literal) && !clauseGlobalRemovedLiterals.contains(-literal)) {
                     // increment remove count by 1
                     clauseLiteralRemoveCount.put(i, 1 + clauseLiteralRemoveCount.getOrDefault(i, 0));
                 }
@@ -63,8 +66,10 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
 
             // now, all unit propagations on this clause are done. so, if the new clause size is 1, add
             // to nextUnitPropagations
-            if (instance.clauses.get(i).size() - clauseLiteralRemoveCount.getOrDefault(i, 0) == 1) {
-                for (Integer literal : instance.clauses.get(i)) {
+            if (clause.size() -  clauseGlobalRemovedLiterals.size() - clauseLiteralRemoveCount.getOrDefault(i, 0) == 1) {
+                for (Integer literal : clause) {
+                    if (!clauseGlobalRemovedLiterals.contains(literal))
+                        continue;
                     if (!removedLiterals.contains(literal) && !removedLiterals.contains(-literal)) {
                         nextUnitPropagations.add(literal);
                         removedLiterals.add(literal);
@@ -79,7 +84,7 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
 
     @Override
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
-        if (instance.clauses.isEmpty()) {
+        if (this.remainingClauses.isEmpty()) {
             // pickBranchingVariable should never be called if this is the case (already SAT!)
             throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
         }
@@ -87,9 +92,12 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
 //        Map<Integer, List<Integer>> clausesOfSize = BranchingStrategy.getSizeIndices(instance);
 //        int[] sampleIndices = BranchingStrategy.getShortestSampleIndices(instance, clausesOfSize);
 
+        //MAXO
         Integer maxoLiteral = new MaxOccurrences().pickBranchingVariable(instance);
+
+        // MOMS
         MaxOccurrencesMinSize moms = new MaxOccurrencesMinSize();
-        moms.setRemainingClauses(remainingClauses);
+        moms.setContext(this.remainingClauses, this.globalRemovedLiterals);
         Integer momsLiteral = moms.pickBranchingVariable(instance);
 //        Integer momsLiteral = new MOMSIndices(clausesOfSize).pickBranchingVariable(instance);
 //        Integer mamsLiteral = new MamsSampled(sampleIndices).pickBranchingVariable(instance);
@@ -104,11 +112,6 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
 
             Set<Integer> removedLiterals = new HashSet<>();
             removedLiterals.add(strategyLiterals.get(i));
-
-            double expressionLength = 0;
-            for (Set<Integer> clause : instance.clauses) {
-                expressionLength += clause.size();
-            }
 
             // adapt depth based on average expression length
             deepUpScores[i] = UP(instance, toUnitPropagate, new HashMap<>(), removedLiterals);

@@ -12,6 +12,13 @@ import java.util.Random;
 public class JeroslawWangSampled implements BranchingStrategy{
 
     private int[] sampleIndices;
+    private Set<Integer> remainingClauses;
+    private Map<Integer, Set<Integer>> globalRemovedLiterals;
+
+    public void setContext(Set<Integer> remainingClauses, Map<Integer, Set<Integer>> globalRemovedLiterals) {
+        this.remainingClauses = remainingClauses;
+        this.globalRemovedLiterals = globalRemovedLiterals;
+    }
 
     public JeroslawWangSampled(int[] sampleIndices) {
         this.sampleIndices = sampleIndices;
