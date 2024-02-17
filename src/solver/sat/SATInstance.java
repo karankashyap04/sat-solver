@@ -74,7 +74,9 @@ public class SATInstance {
     //NOTE: for correctness, this would always have to be called before literalCounts is updated
     public void updateVarCount(Integer literal, int updateBy) {
         Integer var = literal < 0 ? -literal : literal;
+        System.out.println("var: " + var);
         int varScore = this.literalCounts.getOrDefault(var, 0) + this.literalCounts.getOrDefault(-var, 0);
+        System.out.println("varScore: " + varScore + "; updateBy: " + updateBy);
         if (varScore != 0) {
             Set<Integer> varScoreVars = this.sortedVarCounts.get(varScore);
             varScoreVars.remove(var);
@@ -83,8 +85,17 @@ public class SATInstance {
         }
 
         int newVarScore = varScore + updateBy;
-        if (newVarScore <= 0)
+        if (newVarScore <= 0) {
+            System.out.println("NOTE: returning without update");
+            System.out.println("varScore: " + varScore);
+            System.out.println("var: " + var);
+            System.out.println("update by: " + updateBy);
+            if (newVarScore < 0) {
+                System.out.println("\nNEGATIVE VAR SCORE\n");
+                System.exit(-1);
+            }
             return;
+        }
         Set<Integer> newVarScoreVars = this.sortedVarCounts.get(newVarScore);
         if (newVarScoreVars == null) {
             newVarScoreVars = new HashSet<>();
