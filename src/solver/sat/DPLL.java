@@ -12,190 +12,105 @@ public class DPLL {
     List<Set<Integer>> removedClauseStack = new ArrayList<>();
     List<Map<Integer, Set<Integer>>> removedLiteralsStack = new ArrayList<>();
     List<Set<Integer>> assignmentStack = new ArrayList<>();
-    int runningRemovedClauses = 0;
 
     public DPLL(BranchingStrategy branchingStrategy) {
         this.branchingStrategy = branchingStrategy;
     }
 
     private void propagatePureSymbols(Set<Integer> pureSymbols, SATInstance instance, Model model) {
-        System.out.println("PLE started");
+        // filter out any bogus pure symbols
+        Set<Integer> filteredPureSymbols = new HashSet<>();
+        for (Integer pureSymbol : pureSymbols) {
+            if (instance.literalCounts.getOrDefault(pureSymbol, 0) > 0)
+                filteredPureSymbols.add(pureSymbol);
+        }
+        pureSymbols = filteredPureSymbols;
+
         Set<Integer> newPureSymbols = new HashSet<>();
         Set<Integer> clausesToRemove = new HashSet<>();
-
-        for (Integer pureSymbol : pureSymbols) {
-            if (instance.literalCounts.getOrDefault(pureSymbol,0) > 0) {
-                newPureSymbols.add(pureSymbol);
-            }
-        }
-        pureSymbols = new HashSet<>(newPureSymbols);
-        newPureSymbols.clear();
-        System.out.println("filtered pure symbols: " + pureSymbols);
-
-        for (Integer i : remainingClauses) {
-            Set<Integer> clause = instance.clauses.get(i);
+        for (Integer clauseIdx : remainingClauses) {
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
             boolean keepClause = true;
             for (Integer pureSymbol : pureSymbols) {
-                if (clause.contains(pureSymbol) && !removedLiterals.getOrDefault(i, new HashSet<>()).contains(pureSymbol)) {
-//                    instance.numClauses--;
+                if (clause.contains(pureSymbol)) {
                     keepClause = false;
                     break;
                 }
             }
-            if (keepClause) {
-//                updatedClauses.add(clause);
-            } else {
+            if (!keepClause) {
+                Set<Integer> clauseRemovedLiterals = removedLiterals.getOrDefault(clauseIdx, new HashSet<>());
                 for (Integer literal : clause) {
-                    if (removedLiterals.getOrDefault(i, new HashSet<>()).contains(literal))
+                    if (clauseRemovedLiterals.contains(literal))
                         continue;
                     instance.updateVarCount(literal, -1);
                     instance.reduceLiteralCount(literal);
                     if (!instance.literalCounts.containsKey(literal) && instance.literalCounts.containsKey(-literal)) {
-//                        instance.pureSymbols.add(-literal);
                         newPureSymbols.add(-literal);
                     }
-                }
-                if (removedClauseStack.isEmpty()) {
-                    removedClauseStack.add(new HashSet<>());
-                }
-                // clause i has been removed
-                removedClauseStack.get(removedClauseStack.size() - 1).add(i);
-//                remainingClauses.remove(i);
-                clausesToRemove.add(i);
-            }
-        }
-        System.out.println("Time for model updates!");
-        model.model.addAll(pureSymbols); // TODO: create a setModel method
-        if (assignmentStack.isEmpty()) {
-            assignmentStack.add(new HashSet<>());
-        }
-        assignmentStack.get(assignmentStack.size() - 1).addAll(pureSymbols);
-//        instance.pureSymbols = newPureSymbols;
-        instance.pureSymbols.clear();
-        for (Integer pureSymbol : newPureSymbols) {
-//            System.out.println("pureSymbol count: " + instance.literalCounts.getOrDefault(pureSymbol, 0) + instance.literalCounts.getOrDefault(-pureSymbol, 0));
-            if (instance.literalCounts.getOrDefault(pureSymbol, 0) + instance.literalCounts.getOrDefault(-pureSymbol, 0) > 0) {
-                instance.pureSymbols.add(pureSymbol);
-            }
-        }
-//        System.out.println("new pure symbols: " + instance.pureSymbols);
-
-        for (Integer clauseIdx : clausesToRemove) {
-            remainingClauses.remove(clauseIdx);
-            runningRemovedClauses++;
-        }
-
-        System.out.println("PLE finished");
-    }
-
-
-    private void findUnitClauses(SATInstance instance) {
-        for (Integer clauseIdx : remainingClauses) {
-            Set<Integer> clause = instance.clauses.get(clauseIdx);
-            if (clause.size() == 1) {
-                for (Integer literal : clause) {
-                    instance.unitClauses.add(literal);
-                    break;
-                }
-            }
-        }
-    }
-
-    private void propagateUnitClause(SATInstance instance, Integer literal, Model model) throws EmptyClauseFoundException {
-//        System.out.println("unit clause: " + literal);
-//        List<Set<Integer>> updatedClauses = new ArrayList<>();
-//        for (Set<Integer> clause : instance.clauses) {
-        System.out.println("unit propagate literal: " + literal);
-        System.out.println("literal count: " + instance.literalCounts.getOrDefault(literal, 0));
-        System.out.println("treemap: " + instance.sortedVarCounts);
-        System.out.println("total clauses size: " + instance.clauses.size());
-        System.out.println("removed clauses count: " + (instance.clauses.size() - remainingClauses.size()));
-        if (instance.sortedVarCounts.size() < 3)
-            System.exit(-1);
-        if ((literal == -17 || literal == 17) && instance.sortedVarCounts.size() == 1) {
-            System.out.println("propagating unit clause 17");
-            System.out.println("treemap: " + instance.sortedVarCounts);
-            System.out.println("literal counts: " + instance.literalCounts);
-        }
-        if (instance.literalCounts.getOrDefault(literal, 0) + instance.literalCounts.getOrDefault(-literal, 0) <= 0) {
-            System.out.println("UNIT PROPAGATING EMPTY LITERAL");
-            System.exit(-1);
-            return;
-        }
-
-        Set<Integer> clausesToRemove = new HashSet<>();
-        for (Integer clauseIdx : remainingClauses) {
-            Set<Integer> clause = instance.clauses.get(clauseIdx);
-//            System.out.println("clause: " + clause);
-//            System.out.println("removed literals: " + removedLiterals.get(clauseIdx));
-            if (clause.contains(-literal) && !removedLiterals.getOrDefault(clauseIdx, new HashSet<>()).contains(-literal)) {
-//                clause.remove(-literal);
-                if (!removedLiterals.containsKey(clauseIdx)) {
-                    removedLiterals.put(clauseIdx, new HashSet<>());
-                }
-                removedLiterals.get(clauseIdx).add(-literal);
-                if (removedLiteralsStack.isEmpty()) {
-                    removedLiteralsStack.add(new HashMap<>());
-                }
-                if (!removedLiteralsStack.get(removedLiteralsStack.size() - 1).containsKey(clauseIdx)) {
-                    removedLiteralsStack.get(removedLiteralsStack.size() - 1).put(clauseIdx, new HashSet<>());
-                }
-                removedLiteralsStack.get(removedLiteralsStack.size() - 1).get(clauseIdx).add(-literal);
-                instance.updateVarCount(literal, -1);
-                instance.reduceLiteralCount(-literal);
-                System.out.println("var count: " + instance.sortedVarCounts.get(literal));
-                System.out.println("literal count: " + instance.literalCounts.get(literal) + instance.literalCounts.get(-literal));
-                if (clause.size() == removedLiterals.get(clauseIdx).size()) {
-                    System.out.println("found empty clause!");
-                    throw new EmptyClauseFoundException("empty clause found!");
-                }
-//                updatedClauses.add(clause);
-                if (clause.size() - removedLiterals.get(clauseIdx).size() == 1) {
-                    for (Integer unitLiteral : clause) {
-                        if (!removedLiterals.get(clauseIdx).contains(unitLiteral)) {
-                            instance.unitClauses.add(unitLiteral);
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (!clause.contains(literal)) {
-                continue;
-            } else { // this clause is being removed since we're unit propagating a literal that is in this clause
-                for (Integer clauseLiteral : clause) {
-                    if (removedLiterals.getOrDefault(clauseIdx, new HashSet<>()).contains(clauseLiteral))
-                        continue;
-                    instance.updateVarCount(clauseLiteral, -1);
-                    instance.reduceLiteralCount(clauseLiteral);
-                    if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)) {
-                        instance.pureSymbols.add(-clauseLiteral);
-                    }
-                }
-                if (removedClauseStack.isEmpty()) {
-                    removedClauseStack.add(new HashSet<>());
                 }
                 removedClauseStack.get(removedClauseStack.size() - 1).add(clauseIdx);
                 clausesToRemove.add(clauseIdx);
             }
         }
+        model.model.addAll(pureSymbols);
+        assignmentStack.get(assignmentStack.size() - 1).addAll(pureSymbols);
+
+        instance.pureSymbols = newPureSymbols;
+        remainingClauses.removeAll(clausesToRemove);
+    }
+
+    private void propagateUnitClause(SATInstance instance, Integer literal, Model model) throws EmptyClauseFoundException {
+        Set<Integer> clausesToRemove = new HashSet<>();
+        boolean emptyClauseFound = false;
+        for (Integer clauseIdx : remainingClauses) {
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
+            if (clause.contains(literal)) { // we need to remove this clause
+                Set<Integer> clauseRemovedLiterals = removedLiterals.getOrDefault(clauseIdx, new HashSet<>());
+                for (Integer clauseLiteral : clause) {
+                    if (clauseRemovedLiterals.contains(clauseLiteral))
+                        continue;
+                    instance.updateVarCount(clauseLiteral, -1);
+                    instance.reduceLiteralCount(clauseLiteral);
+                    if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)
+                        && (literal != clauseLiteral)) {
+                        instance.pureSymbols.add(-clauseLiteral);
+                    }
+                }
+                removedClauseStack.get(removedClauseStack.size() - 1).add(clauseIdx);
+                clausesToRemove.add(clauseIdx);
+            } else if (clause.contains(-literal)) { // TODO: maybe check that -literal isn't in removed literals (i don't think that can ever happen since you can't propagate the same literal twice without backtracking)
+                instance.updateVarCount(literal, -1);
+                instance.reduceLiteralCount(-literal);
+                // update removedLiterals
+                if (!removedLiterals.containsKey(clauseIdx))
+                    removedLiterals.put(clauseIdx, new HashSet<>());
+                removedLiterals.get(clauseIdx).add(-literal);
+                // update removedLiterals in its stack
+                if (!removedLiteralsStack.get(removedLiteralsStack.size() - 1).containsKey(clauseIdx))
+                    removedLiteralsStack.get(removedLiteralsStack.size() - 1).put(clauseIdx, new HashSet<>());
+                removedLiteralsStack.get(removedLiteralsStack.size() - 1).get(clauseIdx).add(-literal);
+
+                if (clause.size() == removedLiterals.get(clauseIdx).size()) {
+//                    throw new EmptyClauseFoundException("empty clause found!");
+                    emptyClauseFound = true;
+                    break;
+                }
+                if (clause.size() - removedLiterals.get(clauseIdx).size() == 1) {
+                    for (Integer unitLiteral : clause) {
+                        if (removedLiterals.get(clauseIdx).contains(unitLiteral))
+                            continue;
+                        instance.unitClauses.add(unitLiteral);
+                        break;
+                    }
+                }
+            }
+        }
+        remainingClauses.removeAll(clausesToRemove);
         model.model.add(literal);
-
-        if (assignmentStack.isEmpty())
-            assignmentStack.add(new HashSet<>());
         assignmentStack.get(assignmentStack.size() - 1).add(literal);
-
-        for (Integer clauseIdx : clausesToRemove) {
-            remainingClauses.remove(clauseIdx);
-            runningRemovedClauses++;
+        if (emptyClauseFound) {
+            throw new EmptyClauseFoundException("empty clause found!");
         }
-
-        if (literal == -17) {
-            System.out.println("after propagating unit clause 17");
-            System.out.println("treemap: " + instance.sortedVarCounts);
-            System.out.println("literal counts: " + instance.literalCounts);
-//            System.exit(-1);
-        }
-
     }
 
     private boolean isSAT(SATInstance instance) {
@@ -203,25 +118,66 @@ public class DPLL {
         return remainingClauses.size() == 0;
     }
 
-    private  DPLLResult dpllInternal(SATInstance instance, Model model) {
-        System.out.println(instance.sortedVarCounts);
-        if (runningRemovedClauses + remainingClauses.size() != instance.clauses.size()) {
-            System.out.println("Sizes have gone wrong 1!");
-            System.exit(-1);
+    private void backtrack(SATInstance instance, Model model) {
+        Set<Integer> stackRemovedClauses = removedClauseStack.remove(removedClauseStack.size() - 1);
+        Map<Integer, Set<Integer>> stackRemovedLiterals = removedLiteralsStack.remove(removedLiteralsStack.size() - 1);
+        Set<Integer> stackAssignments = assignmentStack.remove(assignmentStack.size() - 1);
+
+        // undo the removed clauses
+        for (Integer clauseIdx : stackRemovedClauses) {
+            if (remainingClauses.contains(clauseIdx)) {
+                System.out.println("UNEXPECTED: remainingClauses contains clauses that are removed according to the stack!");
+            }
+            remainingClauses.add(clauseIdx);
+
+            Set<Integer> clauseRemovedLiterals = removedLiterals.getOrDefault(clauseIdx, new HashSet<>());
+            for (Integer literal : instance.clauses.get(clauseIdx)) {
+                if (clauseRemovedLiterals.contains(literal))
+                    continue;
+                instance.updateVarCount(literal, 1);
+                instance.increaseLiteralCount(literal);
+            }
         }
+
+        // undo the removed literals
+        for (Integer clauseIdx : stackRemovedLiterals.keySet()) {
+            Set<Integer> clauseRemovedLiterals = removedLiterals.get(clauseIdx);
+            for (Integer removedLiteral : stackRemovedLiterals.get(clauseIdx)) {
+                if (!clauseRemovedLiterals.contains(removedLiteral))
+                    System.out.println("UNEXPECTED: removedLiterals doesn't contain literal that was removed according to the stack!");
+                clauseRemovedLiterals.remove(removedLiteral);
+                instance.updateVarCount(removedLiteral, 1);
+                instance.increaseLiteralCount(removedLiteral);
+            }
+        }
+
+        // undo the assignments
+        if (!model.model.containsAll(stackAssignments))
+            System.out.println("UNEXPECTED: model doesn't contain all assignments stored in the stack!");
+        model.model.removeAll(stackAssignments);
+
+        instance.unitClauses.clear();
+        instance.pureSymbols.clear();
+    }
+
+    private  DPLLResult dpllInternal(SATInstance instance, Model model) {
         if (isSAT(instance)) {
             return new DPLLResult(instance, model, true);
         }
 
         if (!instance.pureSymbols.isEmpty()) {
             propagatePureSymbols(instance.pureSymbols, instance, model);
-//            instance.pureSymbols.clear();
             return dpllInternal(instance, model);
         }
 
         try {
             if (!instance.unitClauses.isEmpty()) {
-                Integer unitLiteral = instance.unitClauses.remove(instance.unitClauses.size() - 1);
+                Integer unitLiteral = 0;
+                for (Integer unitClause : instance.unitClauses) {
+                    unitLiteral = unitClause;
+                    break;
+                }
+                instance.unitClauses.remove(unitLiteral);
                 propagateUnitClause(instance, unitLiteral, model);
                 return dpllInternal(instance, model);
             }
@@ -231,116 +187,33 @@ public class DPLL {
 
         try {
             Integer branchVariable = this.branchingStrategy.pickBranchingVariable(instance);
-            System.out.println("branchVariable: " + branchVariable);
 
-            if (instance.literalCounts.get(branchVariable) <= 0) {
-                System.out.println("branch variable not present ever!!");
-                System.exit(-1);
-            }
-
-            // positive assumption
-            // new elements on stack
+            // POSITIVE ASSUMPTION
+            // 1. make new entries on the stack
             removedClauseStack.add(new HashSet<>());
             removedLiteralsStack.add(new HashMap<>());
             assignmentStack.add(new HashSet<>());
 
-            model.model.add(branchVariable);
-            assignmentStack.get(assignmentStack.size() - 1).add(branchVariable);
-            try {
-//                if (branchVariable == 17 || branchVariable == -17) {
-//                    System.out.println("before propagate unit clause");
-//                    System.out.println("treemap: " + instance.sortedVarCounts);
-//                    System.out.println("literal counts: " + instance.literalCounts);
-//                    System.exit(-1);
-//                }
-                propagateUnitClause(instance, branchVariable, model);
-                DPLLResult positiveResult = dpllInternal(instance, model);
+            // 2. mark the branching variable as a unit clause that needs to be propagated
+            instance.unitClauses.add(branchVariable);
 
-                // check if satisfied
-                if (positiveResult.isSAT)
-                    return positiveResult;
-            } catch (EmptyClauseFoundException e) {
-                // do nothing here (positive assumption led to UNSAT)
+            // 3. recurse with positive assumption
+            DPLLResult positiveAssumptionResult = dpllInternal(instance, model);
+            if (positiveAssumptionResult.isSAT) {
+                return positiveAssumptionResult;
             }
 
-            if (runningRemovedClauses + remainingClauses.size() != instance.clauses.size()) {
-                System.out.println("Sizes have gone wrong 2!");
-                System.exit(-1);
-            }
+            // BACKTRACKING -- undo effects of positive assumption
+            backtrack(instance, model);
 
-            // backtrack
-            System.out.println("\n\n\nbacktrack\n\n\n");
-            Set<Integer> positiveRemovedClauses = removedClauseStack.remove(removedClauseStack.size() - 1);
-            Map<Integer, Set<Integer>> positiveRemovedLiterals = removedLiteralsStack.remove(removedLiteralsStack.size() - 1);
-            Set<Integer> positiveAssignments = assignmentStack.remove(assignmentStack.size() - 1);
+            // NEGATIVE ASSUMPTION
+            // 1. mark the negated branching variable as a unit clause that needs to be propagated
+            instance.unitClauses.add(-branchVariable);
 
-            System.out.println("removedClauseStack sizes: ");
-            for (Set<Integer> removedClauseStackEntry : removedClauseStack) {
-                System.out.println(removedClauseStackEntry.size());
-            }
-            System.out.println("runningRemovedClauses: " + runningRemovedClauses);
-            System.out.println("remainingClauses size: " + remainingClauses.size());
-            System.out.println("positive removed clauses size: " + positiveRemovedClauses.size());
-
-            // as we undo changes, we need to update the models, the global vars, and literal counts, sortedVarCounts.
-            for (Integer clauseIdx : positiveRemovedClauses) {
-                if (remainingClauses.contains(clauseIdx)) {
-                    System.out.println("removed clause already in remaining clauses!!");
-                }
-                remainingClauses.add(clauseIdx);
-                runningRemovedClauses--;
-                for (Integer literal : instance.clauses.get(clauseIdx)) {
-                    if (!removedLiterals.getOrDefault(clauseIdx, new HashSet<>()).contains(literal)) {
-                        instance.updateVarCount(literal, 1);
-                        instance.increaseLiteralCount(literal);
-                    }
-                }
-            }
-            System.out.println("restored remaining clause size: " + remainingClauses.size());
-
-            for (Integer clauseIdx : positiveRemovedLiterals.keySet()) {
-                for (Integer removedLiteral : positiveRemovedLiterals.get(clauseIdx)) {
-                    removedLiterals.get(clauseIdx).remove(removedLiteral);
-
-                    instance.updateVarCount(removedLiteral, 1);
-                    instance.increaseLiteralCount(removedLiteral);
-                }
-            }
-
-            for (Integer literal : positiveAssignments) {
-                model.model.remove(literal);
-            }
-
-            if (runningRemovedClauses + remainingClauses.size() != instance.clauses.size()) {
-                System.out.println("Sizes have gone wrong 3!");
-                System.out.println("runningRemovedClauses: " + runningRemovedClauses);
-                System.out.println("remainingClauses size: " + remainingClauses.size());
-                System.exit(-1);
-            }
-
-            // clear out unit clauses and pure symbols vars in instance
-            instance.unitClauses.clear();
-            instance.pureSymbols.clear();
-
-            // negative assumption
-//            System.out.println("-branchVariable: " + (-branchVariable));
-            // new elements on set
-//            removedClauseStack.add(new HashSet<>());
-//            removedLiteralsStack.add(new HashMap<>());
-//            assignmentStack.add(new HashSet<>());
-
-            model.model.add(-branchVariable);
-            assignmentStack.get(assignmentStack.size() - 1).add(-branchVariable);
-            try {
-                propagateUnitClause(instance, branchVariable, model);
-                DPLLResult negativeResult = dpllInternal(instance, model);
-                return negativeResult;
-            } catch (EmptyClauseFoundException e) {
-                // do nothing here (positive assumption led to UNSAT)
-                return new DPLLResult(instance, model, false);
-            }
-
-        } catch (NoVariableFoundException e) {
+            // 2. recurse with negative assumption
+            return dpllInternal(instance, model);
+        }
+        catch (NoVariableFoundException e) {
             System.out.println(e.getMessage());
             return null;
         }
@@ -354,6 +227,18 @@ public class DPLL {
             }
         }
         return false;
+    }
+
+    private void findInitialUnitClauses(SATInstance instance) {
+        for (Integer clauseIdx : remainingClauses) {
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
+            if (clause.size() == 1) {
+                for (Integer literal : clause) {
+                    instance.unitClauses.add(literal);
+                    break;
+                }
+            }
+        }
     }
 
     public DPLLResult dpll(SATInstance instance, Model model) {
@@ -380,9 +265,15 @@ public class DPLL {
             }
         }
 
-        findUnitClauses(instance);
+        findInitialUnitClauses(instance);
         System.out.println("initial pure symbols: " + instance.pureSymbols);
         System.out.println("initial unit clauses: " + instance.unitClauses);
+
+        // initialize stacks with empty elements (these initial elements should always remain on the stack -- never used
+        // while backtracking etc since these are from before we ever branch)
+        removedClauseStack.add(new HashSet<>());
+        removedLiteralsStack.add(new HashMap<>());
+        assignmentStack.add(new HashSet<>());
 
         // populate var counts tree map
         for (Integer var : instance.vars) {
