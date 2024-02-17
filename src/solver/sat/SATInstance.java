@@ -22,7 +22,7 @@ public class SATInstance {
 
     public Set<Integer> pureSymbols = new HashSet<>();
 
-    public List<Integer> unitClauses = new ArrayList<>();
+    public Set<Integer> unitClauses = new HashSet<>();
 
     public SATInstance(int numVars, int numClauses) {
         this.numVars = numVars;
@@ -49,26 +49,33 @@ public class SATInstance {
 
     public void reduceLiteralCount(Integer literal) {
         Integer literalCount = this.literalCounts.getOrDefault(literal, 0);
-        if (literalCount == 0)
+        if (literalCount == 0) {
+            System.out.println("ERROR: tried to reduce literal count for a variable with count 0");
             return;
+        }
         if (literalCount == 1)
             this.literalCounts.remove(literal);
         else
             this.literalCounts.put(literal, literalCount - 1);
     }
 
-    public SATInstance copy() {
-        SATInstance result = new SATInstance(this.numVars, this.numClauses);
-        result.vars = new HashSet<>(this.vars);
-        result.clauses = new ArrayList<Set<Integer>>();
-        for (Set<Integer> clause : this.clauses) {
-            result.clauses.add(new HashSet<>(clause));
-        }
-        result.literalCounts = new HashMap<>(this.literalCounts);
-        result.pureSymbols = new HashSet<>(this.pureSymbols);
-        result.unitClauses = new ArrayList<>(this.unitClauses);
-        return result;
+    public void increaseLiteralCount(Integer literal) {
+        Integer literalCount = this.literalCounts.getOrDefault(literal, 0);
+        this.literalCounts.put(literal, 1 + literalCount);
     }
+
+//    public SATInstance copy() {
+//        SATInstance result = new SATInstance(this.numVars, this.numClauses);
+//        result.vars = new HashSet<>(this.vars);
+//        result.clauses = new ArrayList<Set<Integer>>();
+//        for (Set<Integer> clause : this.clauses) {
+//            result.clauses.add(new HashSet<>(clause));
+//        }
+//        result.literalCounts = new HashMap<>(this.literalCounts);
+//        result.pureSymbols = new HashSet<>(this.pureSymbols);
+//        result.unitClauses = new HashSet<>(this.unitClauses);
+//        return result;
+//    }
 
     public int getNumVars() {
         return this.numVars;
