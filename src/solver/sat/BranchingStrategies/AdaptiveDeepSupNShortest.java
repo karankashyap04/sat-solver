@@ -21,7 +21,10 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
         this.globalRemovedLiterals = globalRemovedLiterals;
     }
 
-    private int UP(SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
+    private int UP(int depth, SATInstance instance, Set<Integer> toUnitPropagate, Map<Integer, Integer> clauseLiteralRemoveCount, Set<Integer> removedLiterals) {
+        if (depth == 0 || toUnitPropagate.isEmpty()) {
+            return 0;
+        }
         Set<Integer> nextUnitPropagations = new HashSet<>();
         for (Integer i : this.remainingClauses) {
             Set<Integer> clause = instance.clauses.get(i);
@@ -45,7 +48,6 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
                                     && !removedLiterals.contains(-literal)
                                     && !clauseGlobalRemovedLiterals.contains(literal)) {
                         // throw error
-                        System.out.println("size is 1 error");
                         break;
                     }
                 }
@@ -79,7 +81,7 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
             }
         }
 
-        return nextUnitPropagations.size();
+        return nextUnitPropagations.size() + UP(depth-1, instance, nextUnitPropagations, clauseLiteralRemoveCount, removedLiterals);
     }
 
     @Override
@@ -101,24 +103,32 @@ public class AdaptiveDeepSupNShortest implements BranchingStrategy {
         Integer momsLiteral = moms.pickBranchingVariable(instance);
 //        Integer momsLiteral = new MOMSIndices(clausesOfSize).pickBranchingVariable(instance);
 //        Integer mamsLiteral = new MamsSampled(sampleIndices).pickBranchingVariable(instance);
-//        Integer jwLiteral = new JeroslawWangSampled(sampleIndices).pickBranchingVariable(instance);
+       JeroslawWangSampled jwSampled = new JeroslawWangSampled(this.remainingClauses);
+       jwSampled.setContext(this.remainingClauses, this.globalRemovedLiterals);
+       Integer jwLiteral = jwSampled.pickBranchingVariable(instance);
 
-        int MAXO = 0, MOMS = 1; // constants for strategies
-        Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral);
-        int[]deepUpScores = new int[2];
-        for (int i = 0; i < 2; i++) {
+        int MAXO = 0, MOMS = 1, JW = 2; // constants for strategies
+        Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral, JW, jwLiteral);
+        int[]deepUpScores = new int[3];
+        for (int i = 0; i < 3; i++) {
             Set<Integer> toUnitPropagate = new HashSet<>();
             toUnitPropagate.add(strategyLiterals.get(i));
 
             Set<Integer> removedLiterals = new HashSet<>();
             removedLiterals.add(strategyLiterals.get(i));
 
+            int totalExpressionLength = 0;
+            for (Integer idx : this.remainingClauses) {
+                totalExpressionLength += instance.clauses.get(idx).size() - this.globalRemovedLiterals.getOrDefault(idx, new HashSet<>()).size();
+            }
+
             // adapt depth based on average expression length
-            deepUpScores[i] = UP(instance, toUnitPropagate, new HashMap<>(), removedLiterals);
+            deepUpScores[i] = UP(totalExpressionLength / (2 * this.remainingClauses.size()), instance, toUnitPropagate, new HashMap<>(), removedLiterals);
+            // deepUpScores[i] = UP(2, instance, toUnitPropagate, new HashMap<>(), removedLiterals);
         }
 
         int argmax = 0;
-        for (int i = 1; i < 2; i++) {
+        for (int i = 1; i < 3; i++) {
             if (deepUpScores[i] > deepUpScores[argmax]) {
                 argmax = i;
             }

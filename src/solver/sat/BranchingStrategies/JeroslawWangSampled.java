@@ -11,7 +11,7 @@ import java.util.Random;
 
 public class JeroslawWangSampled implements BranchingStrategy{
 
-    private int[] sampleIndices;
+    private Set<Integer> sampleIndices;
     private Set<Integer> remainingClauses;
     private Map<Integer, Set<Integer>> globalRemovedLiterals;
 
@@ -20,7 +20,7 @@ public class JeroslawWangSampled implements BranchingStrategy{
         this.globalRemovedLiterals = globalRemovedLiterals;
     }
 
-    public JeroslawWangSampled(int[] sampleIndices) {
+    public JeroslawWangSampled(Set<Integer> sampleIndices) {
         this.sampleIndices = sampleIndices;
     }
 
@@ -58,9 +58,11 @@ public class JeroslawWangSampled implements BranchingStrategy{
 //        for (Set<Integer> clause : instance.clauses) { // NOTE: clauses shouldn't be empty
         for (int sampleIdx : this.sampleIndices) {
             Set<Integer> clause = instance.clauses.get(sampleIdx);
-            int clauseLength = clause.size();
+            Set<Integer> clauseRemovedLiterals = this.globalRemovedLiterals.getOrDefault(sampleIdx, new HashSet<>());
+            int clauseLength = clause.size() - clauseRemovedLiterals.size();
             double weight = Math.pow(2, -clauseLength);
             for (Integer literal : clause) {
+                if (clauseRemovedLiterals.contains(literal)) continue;
                 literalScores.put(literal, weight + literalScores.getOrDefault(literal, 0.0));
                 int var = literal < 0 ? -literal : literal; // variable for this literal
                 double varScore = literalScores.getOrDefault(literal, 0.0) + literalScores.getOrDefault(-literal, 0.0);
