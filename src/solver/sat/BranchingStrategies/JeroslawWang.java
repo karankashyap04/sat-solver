@@ -4,6 +4,7 @@ import solver.sat.NoVariableFoundException;
 import solver.sat.SATInstance;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,8 +32,9 @@ public class JeroslawWang implements BranchingStrategy{
         int maxVar = 0;
         double maxScore = Double.MIN_VALUE;
 
-        for (Set<Integer> clause : instance.clauses) { // NOTE: clauses shouldn't be empty
-            int clauseLength = clause.size();
+        for (Integer clauseIdx : this.remainingClauses) { // NOTE: clauses shouldn't be empty
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
+            int clauseLength = clause.size() - this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>()).size();
             double weight = Math.pow(2, -clauseLength);
             for (Integer literal : clause) {
                 literalScores.put(literal, weight + literalScores.getOrDefault(literal, 0.0));
