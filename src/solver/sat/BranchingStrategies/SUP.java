@@ -3,6 +3,7 @@ package solver.sat.BranchingStrategies;
 import solver.sat.NoVariableFoundException;
 import solver.sat.SATInstance;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.Map;
 
@@ -27,49 +28,58 @@ public class SUP implements BranchingStrategy{
             throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
         }
 
-        Integer maxoLiteral = new MaxOccurrences().pickBranchingVariable(instance);
-        Integer momsLiteral = new MaxOccurrencesMinSize().pickBranchingVariable(instance);
-        Integer mamsLiteral = new MAMS().pickBranchingVariable(instance);
-        Integer jwLiteral = new JeroslawWang().pickBranchingVariable(instance);
+//        Integer maxoLiteral = new MaxOccurrences().pickBranchingVariable(instance);
+//        Integer momsLiteral = new MaxOccurrencesMinSize().pickBranchingVariable(instance);
+        MaxOccurrences maxo = new MaxOccurrences();
+        maxo.setContext(this.remainingClauses, this.globalRemovedLiterals);
+        Integer maxoLiteral = maxo.pickBranchingVariable(instance);
 
-        int MAXO = 0, MOMS = 1, MAMS = 2, JW = 3; // constants for strategies
-        Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral, MAMS, mamsLiteral, JW, jwLiteral);
+        MaxOccurrencesMinSize moms = new MaxOccurrencesMinSize();
+        moms.setContext(this.remainingClauses, this.globalRemovedLiterals);
+        Integer momsLiteral = moms.pickBranchingVariable(instance);
+//        Integer mamsLiteral = new MAMS().pickBranchingVariable(instance);
+//        Integer jwLiteral = new JeroslawWang().pickBranchingVariable(instance);
+
+        int MAXO = 0, MOMS = 1; // constants for strategies
+        Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral);
 
         int maxUP = Integer.MIN_VALUE;
-        int bestStrategy = JW;
+        int bestStrategy = MAXO;
         
-        int maxoUP = 0, momsUP = 0, mamsUP = 0, jwUP = 0;
+        int maxoUP = 0, momsUP = 0;
         // Give priority to JW and then MAXO when ties occur
-        for (Set<Integer> clause : instance.clauses) {
-            if (clause.size() == 2) {
-                if (clause.contains(maxoLiteral)) {
+        for (Integer clauseIdx : this.remainingClauses) {
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
+            Set<Integer> clauseRemovedLiterals = this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>());
+            if (clause.size() - clauseRemovedLiterals.size() == 2) {
+                if (clause.contains(maxoLiteral) && !clauseRemovedLiterals.contains(maxoLiteral)) {
                     maxoUP++;
                     if (maxoUP >= maxUP) {
                         bestStrategy = MAXO;
                         maxUP = maxoUP;
                     }
                 }
-                if (clause.contains(momsLiteral)) {
+                if (clause.contains(momsLiteral) && !clauseRemovedLiterals.contains(momsLiteral)) {
                     momsUP++;
                     if (momsUP > maxUP) {
                         bestStrategy = MOMS;
                         maxUP = momsUP;
                     }
                 }
-                if (clause.contains(mamsLiteral)) {
-                    mamsUP++;
-                    if (mamsUP > maxUP) {
-                        bestStrategy = MAMS;
-                        maxUP = mamsUP;
-                    }
-                }
-                if (clause.contains(jwLiteral)) {
-                    jwUP++;
-                    if (jwUP >= maxUP) {
-                        bestStrategy = JW;
-                        maxUP = jwUP;
-                    }
-                }
+//                if (clause.contains(mamsLiteral)) {
+//                    mamsUP++;
+//                    if (mamsUP > maxUP) {
+//                        bestStrategy = MAMS;
+//                        maxUP = mamsUP;
+//                    }
+//                }
+//                if (clause.contains(jwLiteral)) {
+//                    jwUP++;
+//                    if (jwUP >= maxUP) {
+//                        bestStrategy = JW;
+//                        maxUP = jwUP;
+//                    }
+//                }
             }
         }
 

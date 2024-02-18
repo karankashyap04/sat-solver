@@ -101,35 +101,36 @@ public class AdaptiveDeepSUP implements BranchingStrategy {
         moms.setContext(this.remainingClauses, this.globalRemovedLiterals);
         Integer momsLiteral = moms.pickBranchingVariable(instance);
 
-        MAMS mams = new MAMS();
-        mams.setContext(this.remainingClauses, this.globalRemovedLiterals);
-        Integer mamsLiteral = mams.pickBranchingVariable(instance);
+//        MAMS mams = new MAMS();
+//        mams.setContext(this.remainingClauses, this.globalRemovedLiterals);
+//        Integer mamsLiteral = mams.pickBranchingVariable(instance);
+//
+//        JeroslawWang jw = new JeroslawWang();
+//        jw.setContext(this.remainingClauses, this.globalRemovedLiterals);
+//        Integer jwLiteral = jw.pickBranchingVariable(instance);
 
-        JeroslawWang jw = new JeroslawWang();
-        jw.setContext(this.remainingClauses, this.globalRemovedLiterals);
-        Integer jwLiteral = jw.pickBranchingVariable(instance);
-
-        int MAXO = 0, MOMS = 1, MAMS = 2, JW = 3; // constants for strategies
-        Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral, MAMS, mamsLiteral, JW, jwLiteral);
-        int[] deepUpScores = new int[4];
-        for (int i = 0; i < 4; i++) {
+        int MAXO = 0, MOMS = 1; // constants for strategies
+        Map<Integer, Integer> strategyLiterals = Map.of(MAXO, maxoLiteral, MOMS, momsLiteral);
+        int[] deepUpScores = new int[2];
+        for (int i = 0; i < 2; i++) {
             Set<Integer> toUnitPropagate = new HashSet<>();
             toUnitPropagate.add(strategyLiterals.get(i));
 
             Set<Integer> removedLiterals = new HashSet<>();
             removedLiterals.add(strategyLiterals.get(i));
 
-            int expressionLength = 0;
-            for (Integer idx : this.remainingClauses) {
-                expressionLength += instance.clauses.get(idx).size() - this.globalRemovedLiterals.getOrDefault(idx, new HashSet<>()).size();
-            }
+//            int expressionLength = 0;
+//            for (Integer idx : this.remainingClauses) {
+//                expressionLength += instance.clauses.get(idx).size() - this.globalRemovedLiterals.getOrDefault(idx, new HashSet<>()).size();
+//            }
 
             // adapt depth based on average expression length
-            deepUpScores[i] = UP((int) (expressionLength / (2 * Double.valueOf(this.remainingClauses.size()))), instance, toUnitPropagate, new HashMap<>(), removedLiterals);
+//            deepUpScores[i] = UP((int) (expressionLength / (2 * Double.valueOf(this.remainingClauses.size()))), instance, toUnitPropagate, new HashMap<>(), removedLiterals);
+            deepUpScores[i] = UP(1, instance, toUnitPropagate, new HashMap<>(), removedLiterals);
         }
 
         int argmax = 0;
-        for (int i = 1; i < 4; i++) {
+        for (int i = 1; i < 2; i++) {
             if (deepUpScores[i] > deepUpScores[argmax]) {
                 argmax = i;
             }
