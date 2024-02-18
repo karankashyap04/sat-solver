@@ -67,11 +67,13 @@ public class DPLL {
             if (clause.contains(literal)) { // we need to remove this clause
                 Set<Integer> clauseRemovedLiterals = removedLiterals.getOrDefault(clauseIdx, new HashSet<>());
                 for (Integer clauseLiteral : clause) {
-                    if (clauseRemovedLiterals.contains(clauseLiteral))
+                    if (clauseRemovedLiterals.contains(clauseLiteral)) {
                         continue;
-                    if (instance.unitClauses.contains(-clauseLiteral) || instance.unitClauses.contains(clauseLiteral))
-                        continue;
+                    }
                     instance.reduceLiteralCount(clauseLiteral);
+                    if (instance.unitClauses.contains(-clauseLiteral) || instance.unitClauses.contains(clauseLiteral)) {
+                        continue;
+                    }
                     if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)
                             && (!literal.equals(clauseLiteral)) && (!literal.equals(-clauseLiteral))) {
                         instance.pureSymbols.add(-clauseLiteral);
@@ -159,6 +161,7 @@ public class DPLL {
     }
 
     private DPLLResult dpllInternal(SATInstance instance, Model model) {
+
         if (isSAT(instance)) {
             return new DPLLResult(instance, model, true);
         }
@@ -242,6 +245,12 @@ public class DPLL {
             return new DPLLResult(instance, model, false);
         }
 
+        // initialize stacks with empty elements (these initial elements should always remain on the stack -- never used
+        // while backtracking etc since these are from before we ever branch)
+        removedClauseStack.add(new HashSet<>());
+        removedLiteralStack.add(new HashMap<>());
+        assignmentStack.add(new HashSet<>());
+
         // finding pure symbols
         for (Set<Integer> clause : instance.clauses) {
             for (Integer literal : clause) {
@@ -256,18 +265,15 @@ public class DPLL {
             }
         }
 
+        propagatePureSymbols(instance.pureSymbols, instance, model);
+        instance.pureSymbols.clear();
+
         findInitialUnitClauses(instance);
 
         // populate remaining clauses
         for (int i = 0; i < instance.clauses.size(); i++)
             remainingClauses.add(i);
         assert remainingClauses.size() == instance.clauses.size();
-
-        // initialize stacks with empty elements (these initial elements should always remain on the stack -- never used
-        // while backtracking etc since these are from before we ever branch)
-        removedClauseStack.add(new HashSet<>());
-        removedLiteralStack.add(new HashMap<>());
-        assignmentStack.add(new HashSet<>());
 
         return this.dpllInternal(instance, model);
     }

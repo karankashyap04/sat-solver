@@ -54,7 +54,7 @@ public class MaxOccurrences implements BranchingStrategy {
     }
 
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
-        if (instance.clauses.isEmpty()) {
+        if (this.remainingClauses.isEmpty()) {
             // pickBranchingVariable should never be called if this is the case (already SAT!)
             throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
         }
