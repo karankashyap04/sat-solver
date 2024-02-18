@@ -18,7 +18,7 @@ public class CheckerMain {
         DPLLChecker checker = new DPLLChecker();
 
         // read results.log
-        String resultsPath = "results.log";
+        String resultsPath = "resultsBacktrackMOMSMAXOSUP.log";
         BufferedReader reader = new BufferedReader(new FileReader(resultsPath));
 
         String line = reader.readLine();
