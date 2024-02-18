@@ -18,6 +18,9 @@ public class DPLLResult {
         for (Integer var : vars) {
             if (this.model.model.contains(var)) {
                 buf.append(var + " true ");
+                if (this.model.model.contains(-var)) {
+                    System.out.println("-var is there and var too!");
+                }
             } else { // NOTE: assign false to arbitrary choice vars
                 buf.append(var + " false ");
             }

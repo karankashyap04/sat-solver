@@ -32,6 +32,7 @@ public class DPLL {
 //    }
 
     private void propagatePureSymbols(Set<Integer> pureSymbols, SATInstance instance, Model model) {
+        // System.out.println("pure symbols propagating: " + pureSymbols);
         List<Set<Integer>> updatedClauses = new ArrayList<>();
         for (Set<Integer> clause : instance.clauses) {
             boolean keepClause = true;
@@ -49,6 +50,20 @@ public class DPLL {
                     instance.reduceLiteralCount(literal);
                 }
             }
+        }
+        for (Integer pureSymbol : pureSymbols) {
+            // if (pureSymbol == -364) {
+            //     System.out.println("-364 literal count: " + instance.literalCounts.get(-364));
+            //     System.out.println("364 literal count: " + instance.literalCounts.get(364));
+            // }
+            // if (model.model.contains(pureSymbol))
+            //     System.out.println("ERROR: pure symbol " + pureSymbol + " already in model!");
+            // if (model.model.contains(-pureSymbol))
+            //     System.out.println("ERROR: pure symbol negation " + (-pureSymbol) + " already in model!");
+            // if (instance.literalCounts.containsKey(pureSymbol))
+            //     System.out.println("removed pure literal " + pureSymbol + " has non-zero literal count: " + instance.literalCounts.get(pureSymbol));
+            // if (instance.literalCounts.containsKey(-pureSymbol))
+            //     System.out.println("supposedly non-existent negated pure literal " + (-pureSymbol) + " has non-zero literal count: " + instance.literalCounts.get(-pureSymbol));
         }
         model.model.addAll(pureSymbols); // TODO: create a setModel method
         instance.clauses = updatedClauses; // TODO: maybe create a setClauses method
@@ -82,9 +97,41 @@ public class DPLL {
     }
 
     private void propagateUnitClause(SATInstance instance, Integer literal, Model model) throws EmptyClauseFoundException {
+        // System.out.println("unit clause propagating: " + literal);
         List<Set<Integer>> updatedClauses = new ArrayList<>();
         for (Set<Integer> clause : instance.clauses) {
-            if (clause.contains(-literal)) {
+            if (clause.contains(literal)) {
+                // if (literal == -154) {
+                //     System.out.println("clause: " + clause);
+                // }
+                for (Integer clauseLiteral : clause) {
+                    instance.reduceLiteralCount(clauseLiteral);
+                    if (clauseLiteral.equals(literal) || clauseLiteral.equals(-literal))
+                        continue;
+                    // if (literal == -154) {
+                    //     System.out.println("clause: " + clause);
+                    //     System.out.println("clause literal: " + clauseLiteral);
+                    //     System.out.println("literal counts of clause literal: " + instance.literalCounts.get(clauseLiteral));
+                    //     System.out.println("literal counts of -clause literal: " + instance.literalCounts.get(-clauseLiteral));
+                    // }
+                    if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)) {
+                        // if (literal == -154) {
+                        //     System.out.println("clause: " + clause);
+                        //     System.out.println("clause literal: " + clauseLiteral);
+                        //     System.out.println("literal counts of clause literal: " + instance.literalCounts.get(clauseLiteral));
+                        //     System.out.println("literal counts of -clause literal: " + instance.literalCounts.get(-clauseLiteral));
+                        // }
+                        if (instance.unitClauses.contains(-clauseLiteral) || instance.unitClauses.contains(clauseLiteral))
+                            continue;
+                        instance.pureSymbols.add(-clauseLiteral);
+                    }
+                }
+            }
+            else if (clause.contains(-literal)) {
+                // if (literal == -364) {
+                //     System.out.println("clause: " + clause);
+                //     System.out.println("unit literal being propagated: " + literal);
+                // }
                 clause.remove(-literal);
                 instance.reduceLiteralCount(-literal);
                 if (clause.isEmpty()) {
@@ -93,22 +140,19 @@ public class DPLL {
                 updatedClauses.add(clause);
                 if (clause.size() == 1) {
                     for (Integer unitLiteral : clause) {
-                        instance.unitClauses.add(unitLiteral);
+                        if (!instance.pureSymbols.contains(unitLiteral))
+                            instance.unitClauses.add(unitLiteral);
                         break;
                     }
                 }
-            }
-            else if (!clause.contains(literal)) {
-                updatedClauses.add(clause);
             } else {
-                for (Integer clauseLiteral : clause) {
-                    instance.reduceLiteralCount(clauseLiteral);
-                    if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)) {
-                        instance.pureSymbols.add(-clauseLiteral);
-                    }
-                }
+                updatedClauses.add(clause);
             }
         }
+        // if (model.model.contains(literal))
+        //     System.out.println("ERROR: unit clause " + literal + " already in model!");
+        // if (model.model.contains(-literal))
+        //     System.out.println("ERROR: unit clause negation " + (-literal) + " already in model!");
         model.model.add(literal); // TODO: create a setModel method
         instance.clauses = updatedClauses; // TODO: maybe create a setClauses method
         instance.numClauses = updatedClauses.size();
@@ -164,7 +208,15 @@ public class DPLL {
 
         try {
             if (!instance.unitClauses.isEmpty()) {
-                Integer unitLiteral = instance.unitClauses.remove(instance.unitClauses.size() - 1);
+                // if (instance.unitClauses.contains(-364)) {
+                //     System.out.println("all unit clauses: " + instance.unitClauses);
+                // }
+                Integer unitLiteral = 0;
+                for (Integer literal : instance.unitClauses) {
+                    unitLiteral = literal;
+                    break;
+                }
+                instance.unitClauses.remove(unitLiteral);
                 propagateUnitClause(instance, unitLiteral, model);
                 return dpllInternal(instance, model);
             }
@@ -172,14 +224,16 @@ public class DPLL {
             return new DPLLResult(instance, model, false);
         }
 
-//        Integer unitSymbol = findUnitClause(instance);
-//        if (unitSymbol != 0) {
-//            propagateUnitClause(instance, unitSymbol, model);
-//            return dpll(instance,model);
-//        }
-
         try {
             Integer branchVariable = this.branchingStrategy.pickBranchingVariable(instance);
+            // if (branchVariable == 364)
+            //     System.out.println("branching on 364");
+            // if (branchVariable == -364)
+            //     System.out.println("branching on -364");
+            // if (model.model.contains(branchVariable))
+            //     System.out.println("branch Variable " + branchVariable + " already in model");
+            // if (model.model.contains(-branchVariable))
+            //     System.out.println("negated branch variable " + (-branchVariable) + " already in model");
 
             // positive assumption
             SATInstance positiveInstance = instance.copy();
@@ -235,6 +289,9 @@ public class DPLL {
                 }
             }
         }
+
+        propagatePureSymbols(instance.pureSymbols, instance, model);
+        instance.pureSymbols.clear();
 
         findUnitClauses(instance);
 

@@ -22,7 +22,7 @@ public class SATInstance {
 
     public Set<Integer> pureSymbols = new HashSet<>();
 
-    public List<Integer> unitClauses = new ArrayList<>();
+    public Set<Integer> unitClauses = new HashSet<>();
 
     public SATInstance(int numVars, int numClauses) {
         this.numVars = numVars;
@@ -66,7 +66,7 @@ public class SATInstance {
         }
         result.literalCounts = new HashMap<>(this.literalCounts);
         result.pureSymbols = new HashSet<>(this.pureSymbols);
-        result.unitClauses = new ArrayList<>(this.unitClauses);
+        result.unitClauses = new HashSet<>(this.unitClauses);
         return result;
     }
 
