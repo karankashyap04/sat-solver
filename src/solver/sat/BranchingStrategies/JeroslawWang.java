@@ -34,9 +34,12 @@ public class JeroslawWang implements BranchingStrategy{
 
         for (Integer clauseIdx : this.remainingClauses) { // NOTE: clauses shouldn't be empty
             Set<Integer> clause = instance.clauses.get(clauseIdx);
-            int clauseLength = clause.size() - this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>()).size();
+            Set<Integer> clauseRemovedLiterals = this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>());
+            int clauseLength = clause.size() - clauseRemovedLiterals.size();
             double weight = Math.pow(2, -clauseLength);
             for (Integer literal : clause) {
+                if (clauseRemovedLiterals.contains(literal))
+                    continue;
                 literalScores.put(literal, weight + literalScores.getOrDefault(literal, 0.0));
                 int var = literal < 0 ? -literal : literal; // variable for this literal
                 double varScore = literalScores.getOrDefault(literal, 0.0) + literalScores.getOrDefault(-literal, 0.0);
