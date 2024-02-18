@@ -1,9 +1,6 @@
 package solver.sat.BranchingStrategies;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Implements the MAMS branching strategy as per Lagoudakis, M.
@@ -23,7 +20,7 @@ public class MAMS implements BranchingStrategy {
     }
 
     public Integer pickBranchingVariable(SATInstance instance) throws NoVariableFoundException {
-        if (instance.clauses.isEmpty()) {
+        if (this.remainingClauses.isEmpty()) {
             // pickBranchingVariable should never be called if this is the case (already SAT!)
             throw new NoVariableFoundException("tried to pick branching var with no clauses - already SAT");
         }
@@ -33,8 +30,13 @@ public class MAMS implements BranchingStrategy {
         int maxScore = Integer.MIN_VALUE;
 
         // MAXO
-        for (Set<Integer> clause : instance.clauses) { // NOTE: clauses shouldn't be empty
+//        for (Set<Integer> clause : instance.clauses) { // NOTE: clauses shouldn't be empty
+        for (Integer clauseIdx : this.remainingClauses) {
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
+            Set<Integer> clauseGlobalRemovedLiterals = this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>());
             for (Integer literal : clause) {
+                if (clauseGlobalRemovedLiterals.contains(literal))
+                    continue;
                 literalScores.put(literal, 1 + literalScores.getOrDefault(literal, 0));
                 int var = literal < 0 ? -literal : literal; // variable for this literal
                 int varScore = literalScores.getOrDefault(literal, 0) + literalScores.getOrDefault(-literal, 0);
@@ -46,11 +48,16 @@ public class MAMS implements BranchingStrategy {
         }
 
         // MOMS
-        Set<Integer> minSizeClauses = new MaxOccurrencesMinSize().getMinSizeClauses(instance);
+        MaxOccurrencesMinSize moms = new MaxOccurrencesMinSize();
+        moms.setContext(this.remainingClauses, this.globalRemovedLiterals);
+        Set<Integer> minSizeClauses = moms.getMinSizeClauses(instance);
 //        for (Set<Integer> clause : minSizeClauses) {
         for (Integer clauseIdx : minSizeClauses) {
             Set<Integer> clause = instance.clauses.get(clauseIdx);
+            Set<Integer> clauseGlobalRemovedLiterals = this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>());
             for (Integer literal : clause) {
+                if (clauseGlobalRemovedLiterals.contains(literal))
+                    continue;
                 literalScores.put(literal, 1 + literalScores.getOrDefault(literal, 0));
                 int var = literal < 0 ? -literal : literal;
                 int varScore = literalScores.getOrDefault(literal, 0) + literalScores.getOrDefault(-literal, 0);

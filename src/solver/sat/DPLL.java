@@ -69,9 +69,11 @@ public class DPLL {
                 for (Integer clauseLiteral : clause) {
                     if (clauseRemovedLiterals.contains(clauseLiteral))
                         continue;
+                    if (instance.unitClauses.contains(-clauseLiteral) || instance.unitClauses.contains(clauseLiteral))
+                        continue;
                     instance.reduceLiteralCount(clauseLiteral);
                     if (!instance.literalCounts.containsKey(clauseLiteral) && instance.literalCounts.containsKey(-clauseLiteral)
-                            && (literal != clauseLiteral)) {
+                            && (!literal.equals(clauseLiteral)) && (!literal.equals(-clauseLiteral))) {
                         instance.pureSymbols.add(-clauseLiteral);
                     }
                 }
@@ -96,7 +98,8 @@ public class DPLL {
                     for (Integer unitLiteral : clause) {
                         if (removedLiterals.get(clauseIdx).contains(unitLiteral))
                             continue;
-                        instance.unitClauses.add(unitLiteral);
+                        if (!instance.pureSymbols.contains(unitLiteral))
+                            instance.unitClauses.add(unitLiteral);
                         break;
                     }
                 }
