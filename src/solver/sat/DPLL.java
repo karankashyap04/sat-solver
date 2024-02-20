@@ -230,9 +230,14 @@ public class DPLL {
     }
 
     private void findInitialUnitClauses(SATInstance instance) {
-        for (Set<Integer> clause : instance.clauses) {
-            if (clause.size() == 1) {
+//        for (Set<Integer> clause : instance.clauses) {
+        for (Integer clauseIdx : this.remainingClauses) {
+            Set<Integer> clause = instance.clauses.get(clauseIdx);
+            Set<Integer> clauseRemovedLiterals = this.removedLiterals.getOrDefault(clauseIdx, new HashSet<>());
+            if (clause.size() - clauseRemovedLiterals.size() == 1) {
                 for (Integer literal : clause) {
+                    if (clauseRemovedLiterals.contains(literal))
+                        continue;
                     instance.unitClauses.add(literal);
                     break;
                 }
@@ -250,6 +255,11 @@ public class DPLL {
         removedClauseStack.add(new HashSet<>());
         removedLiteralStack.add(new HashMap<>());
         assignmentStack.add(new HashSet<>());
+
+        // populate remaining clauses
+        for (int i = 0; i < instance.clauses.size(); i++)
+            remainingClauses.add(i);
+        assert remainingClauses.size() == instance.clauses.size();
 
         // finding pure symbols
         for (Set<Integer> clause : instance.clauses) {
@@ -269,11 +279,6 @@ public class DPLL {
         instance.pureSymbols.clear();
 
         findInitialUnitClauses(instance);
-
-        // populate remaining clauses
-        for (int i = 0; i < instance.clauses.size(); i++)
-            remainingClauses.add(i);
-        assert remainingClauses.size() == instance.clauses.size();
 
         return this.dpllInternal(instance, model);
     }
