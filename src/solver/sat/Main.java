@@ -36,8 +36,8 @@ public class Main {
 
         // run DPLL
 //        BranchingStrategy branchingStrategy = new AdaptiveDeepSUP();// use this to configure branching strategy
-        BranchingStrategy branchingStrategy = new SUP();
-//         BranchingStrategy branchingStrategy = new ClauseReducer();
+        // BranchingStrategy branchingStrategy = new SUP();
+        BranchingStrategy branchingStrategy = new ClauseReducer();
 //        BranchingStrategy branchingStrategy = new AdaptiveDeepSupNShortest();// use this to configure branching strategy
 //        BranchingStrategy branchingStrategy = new MaxoLiteral(); // use this to configure branching strategy
         DPLL SATSolver = new DPLL(branchingStrategy);
