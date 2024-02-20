@@ -52,14 +52,16 @@ public class SUP implements BranchingStrategy{
             Set<Integer> clause = instance.clauses.get(clauseIdx);
             Set<Integer> clauseRemovedLiterals = this.globalRemovedLiterals.getOrDefault(clauseIdx, new HashSet<>());
             if (clause.size() - clauseRemovedLiterals.size() == 2) {
-                if (clause.contains(maxoLiteral) && !clauseRemovedLiterals.contains(maxoLiteral)) {
+                // NOTE: it is faster if you incorrect check if the literal (not it's negation) is what is present
+                if (clause.contains(-maxoLiteral) && !clause.contains(maxoLiteral) && !clauseRemovedLiterals.contains(-maxoLiteral)) {
                     maxoUP++;
                     if (maxoUP >= maxUP) {
                         bestStrategy = MAXO;
                         maxUP = maxoUP;
                     }
                 }
-                if (clause.contains(momsLiteral) && !clauseRemovedLiterals.contains(momsLiteral)) {
+                // NOTE: it is faster if you incorrect check if the literal (not it's negation) is what is present
+                if (clause.contains(-momsLiteral) && !clause.contains(momsLiteral) && !clauseRemovedLiterals.contains(-momsLiteral)) {
                     momsUP++;
                     if (momsUP > maxUP) {
                         bestStrategy = MOMS;
