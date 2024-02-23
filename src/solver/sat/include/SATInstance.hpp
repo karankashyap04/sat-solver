@@ -11,15 +11,16 @@ public:
     int numVars;
     int numClauses;
     std::unordered_set<int> *vars;
-    std::vector<std::unordered_set<int> > *clauses;
+    std::vector<std::unordered_set<int>*> *clauses;
     std::unordered_map<int, int> *literalCounts;
     std::unordered_set<int> *pureSymbols;
     std::unordered_set<int> *unitClauses;
 
-    SATInstance(int numVars, int numClauses);
+    // SATInstance(int numVars, int numClauses);
+    SATInstance();
 
     void addVariable(int literal);
-    void addClause(std::unordered_set<int> &clause);
+    void addClause(std::unordered_set<int> *clause);
     // NOTE: not implementing toString from Java implementation -- I don't think we need it 
     void reduceLiteralCount(int literal);
     void increaseLiteralCount(int literal);

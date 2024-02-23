@@ -2,12 +2,12 @@
 #include "include/utils.hpp"
 #include <iostream>
 
-SATInstance::SATInstance(int numVars, int numClauses) {
-    this->numVars = numVars;
-    this->numClauses = numClauses;
+SATInstance::SATInstance() {
+    this->numVars = 0;
+    this->numClauses = 0;
 
     this->vars = new std::unordered_set<int>();
-    this->clauses = new std::vector<std::unordered_set<int> >();
+    this->clauses = new std::vector<std::unordered_set<int>*>();
     this->literalCounts = new std::unordered_map<int, int>();
     this->pureSymbols = new std::unordered_set<int>();
     this->unitClauses = new std::unordered_set<int>();
@@ -17,7 +17,7 @@ void SATInstance::addVariable(int literal) {
     vars->insert(literal < 0 ? -literal : literal);
 }
 
-void SATInstance::addClause(std::unordered_set<int> &clause) {
+void SATInstance::addClause(std::unordered_set<int> *clause) {
     clauses->push_back(clause);
 }
 
