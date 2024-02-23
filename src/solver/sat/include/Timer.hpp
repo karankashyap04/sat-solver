@@ -1,6 +1,8 @@
 #ifndef TIMER_H
 #define TIMER_H
 
+#include<chrono>
+
 class Timer
 {
 private:
@@ -14,7 +16,7 @@ public:
     void reset();
     void start();
     void stop();
-    double get_time();
+    double getTime();
 };
 
 #endif

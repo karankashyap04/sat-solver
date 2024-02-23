@@ -5,4 +5,6 @@
 ########################################
 
 # Update this file with instructions on how to compile your code
-javac src/solver/sat/*.java src/solver/sat/BranchingStrategies/*.java src/solver/sat/Checker/*.java
+g++ src/solver/sat/main.cpp src/solver/sat/include/main.hpp src/solver/sat/Timer.cpp \
+    src/solver/sat/include/Timer.hpp src/solver/sat/SATInstance.cpp src/solver/sat/include/SATInstance.hpp \
+    src/solver/sat/include/utils.hpp

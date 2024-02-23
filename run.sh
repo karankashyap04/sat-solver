@@ -13,4 +13,4 @@ fi
 input=$1
 
 # Update this file with instructions on how to run your code given an input
-java -cp src/ solver.sat.Main $input
+./a.out $input
