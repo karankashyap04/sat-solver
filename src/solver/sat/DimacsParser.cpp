@@ -13,6 +13,10 @@ SATInstance* DimacsParser::parseCNFFile(std::string filename) {
     try {
         std::string line;
         std::ifstream infile(filename);
+
+        // if (!infile.is_open()) {
+        //     std::cout << "file not open" << std::endl;
+        // }
         
         while (std::getline(infile, line)) {
             if (line[0] != 'c')
@@ -40,28 +44,35 @@ SATInstance* DimacsParser::parseCNFFile(std::string filename) {
         satInstance->numClauses = numClauses;
 
         while (std::getline(infile, line)) {
-            std::unordered_set<int> *clause = new std::unordered_set<int>();
-            if (line[line.length() - 1] != '0')
-                throw std::invalid_argument("Error: clause line does not end with 0");
+            tokens.clear();
             std::istringstream iss(line);
             while (std::getline(iss, token, ' ')) {
-                if (token == "0")
-                    break;
-                if (token == "c")
+                tokens.push_back(token);
+            }
+            if (tokens.size() == 0) // empty line
+                continue;
+            if (tokens[0] == "c") // comment
+                continue;
+            if (tokens[tokens.size() - 1] != "0") {
+                throw std::invalid_argument("Error: clause line does not end with 0");
+            }
+            
+            std::unordered_set<int> *clause = new std::unordered_set<int>();
+            for (int i = 0; i < tokens.size(); i++) {
+                if (tokens[i] == "")
                     continue;
-                if (token == "")
-                    continue;
-
-                int literal = std::stoi(token);
+                int literal = std::stoi(tokens[i]);
                 clause->insert(literal);
             }
-
-            satInstance->addClause(clause);
         }
     }
     catch (...) {
-        throw std::runtime_error("Error: DIMACS file is not found " + filename);
+        throw std::runtime_error("Error: couldn't read DIMACS file: " + filename);
     }
+    // catch (const std::exception& e) {
+    //     std::cerr << "Exception caught: " << e.what() << std::endl;
+    //     return satInstance; // or handle the error accordingly
+    // }
     
     return satInstance;
 }
