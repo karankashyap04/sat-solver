@@ -58,12 +58,13 @@ SATInstance* DimacsParser::parseCNFFile(std::string filename) {
             }
             
             std::unordered_set<int> *clause = new std::unordered_set<int>();
-            for (int i = 0; i < tokens.size(); i++) {
+            for (int i = 0; i < tokens.size() - 1; i++) {
                 if (tokens[i] == "")
                     continue;
                 int literal = std::stoi(tokens[i]);
                 clause->insert(literal);
             }
+            satInstance->clauses->push_back(clause);
         }
     }
     catch (...) {

@@ -27,6 +27,15 @@ int main(int argc, char *argv[]) {
     cout << "Number of Variables: " << numVars << endl;
     watch.stop();
 
+    // TODO: remove later -- this was just to ensure that clauses contained expected literals
+    // for (size_t i = 0; i < instance->clauses->size(); i++) {
+    //     auto clause = instance->clauses->at(i);
+    //     for (auto it = clause->begin(); it != clause->end(); it++) {
+    //         cout << *it << " ";
+    //     }
+    //     cout << endl;
+    // }
+
     float timeElapsed = floor(watch.getTime() * 100.0) / 100.0;
 
     cout << "time elapsed: " << timeElapsed << "s" << endl;
