@@ -158,7 +158,8 @@ void DPLL::findInitialUnitClauses() {
             for (int literal : *clause) {
                 if (setContains(clauseRemovedLiterals, literal))
                     continue;
-                this->instance->unitClauses->insert(literal);
+                if (!setContains(this->instance->pureSymbols, literal))
+                    this->instance->unitClauses->insert(literal);
                 break;
             }
         }
@@ -323,7 +324,7 @@ DPLLResult* DPLL::dpll() {
     // std::cout << "found pure symbols" << std::endl;
 
     propagatePureSymbols();
-    this->instance->pureSymbols->clear();
+    // this->instance->pureSymbols->clear();
     // std::cout << "propagated pure symbols" << std::endl;
 
     findInitialUnitClauses();
