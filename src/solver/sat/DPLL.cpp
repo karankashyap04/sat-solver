@@ -253,7 +253,6 @@ DPLLResult* DPLL::dpllInternal() {
 
     try {
         int branchVariable = this->branchingStrategy->pickBranchingVariable(this->instance);
-        std::cout << "branch on: " << branchVariable << std::endl;
 
         // POSITIVE ASSUMPTION
         // 1. make new entries on the stack
