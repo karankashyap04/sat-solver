@@ -6,9 +6,10 @@
 #include "include/DimacsParser.hpp"
 #include "include/BranchingStrategy.hpp"
 #include "include/DPLL.hpp"
-#include "include/ClauseReducer.hpp"
+// #include "include/ClauseReducer.hpp"
 #include "include/Model.hpp"
 // #include "include/Jw.hpp"
+#include "include/SUP.hpp"
 
 using namespace std;
 
@@ -40,7 +41,7 @@ int main(int argc, char *argv[]) {
     cout << "Number of Clauses: " << numClauses << endl;
     cout << "Number of Variables: " << numVars << endl;
 
-    BranchingStrategy *branchingStrategy = new ClauseReducer();
+    BranchingStrategy *branchingStrategy = new SUP();
     Model model(new std::unordered_set<int>());
     DPLL *SATSolver = new DPLL(branchingStrategy, instance, &model);
     DPLLResult *result = SATSolver->dpll();
