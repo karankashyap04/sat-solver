@@ -24,15 +24,15 @@ int ClauseReducer::pickBranchingVariable(SATInstance *instance) {
     moms.setContext(this->remainingClauses, this->globalRemovedLiterals);
     int momsLiteral = moms.pickBranchingVariable(instance);
 
-    if (this->remainingClauses->size() >= 700) {
-        std::random_device rd;  // Obtain a random number from hardware
-        std::mt19937 rng(rd());
-        std::uniform_int_distribution<int> distribution(1, 10);
-        int random_int = distribution(rng);
-        if (random_int % 2 == 0)
-            return maxoLiteral;
-        return momsLiteral;
-    }
+    // if (this->remainingClauses->size() < 100) {
+    //     std::random_device rd;  // Obtain a random number from hardware
+    //     std::mt19937 rng(rd());
+    //     std::uniform_int_distribution<int> distribution(1, 10);
+    //     int random_int = distribution(rng);
+    //     if (random_int % 2 == 0)
+    //         return maxoLiteral;
+    //     return momsLiteral;
+    // }
 
     int MAXO = 0, MOMS = 1;
     int maxoUP = 0, momsUP = 0;
@@ -42,7 +42,7 @@ int ClauseReducer::pickBranchingVariable(SATInstance *instance) {
         std::unordered_set<int> *clause = instance->clauses->at(clauseIdx);
         std::unordered_set<int> *clauseRemovedLiterals = getOrDefault(this->globalRemovedLiterals, clauseIdx, &empty);
         if (clause->size() - clauseRemovedLiterals->size() == 2) {
-            if (setContains(clause, maxoLiteral) && !setContains(clauseRemovedLiterals, maxoLiteral)) {
+            if (setContains(clause, -maxoLiteral) && !setContains(clauseRemovedLiterals, -maxoLiteral)) {
                 maxoUP++;
             }
             if (setContains(clause, momsLiteral) && !setContains(clauseRemovedLiterals, momsLiteral)) {
