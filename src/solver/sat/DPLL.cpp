@@ -68,43 +68,31 @@ void DPLL::propagatePureSymbols() {
 }
 
 void DPLL::propagateUnitClause(int literal) {
-    std::cout << "begin propagating unit clause: " << literal << std::endl;
     std::unordered_set<int> empty_set;
     std::unordered_set<int> clausesToRemove;
     bool emptyClauseFound = false;
     
     for (int clauseIdx : *(this->remainingClauses)) {
-        std::cout << "clauseIdx: " << clauseIdx << std::endl;
         std::unordered_set<int> *clause = this->instance->clauses->at(clauseIdx);
-        std::cout << "got clause" << std::endl;
         if (setContains(clause, literal)) {
             std::unordered_set<int> *clauseRemovedLiterals = getOrDefault(this->removedLiterals, clauseIdx, &empty_set);
-            std::cout << "got clauseRemovedLiterals" << std::endl;
             for (int clauseLiteral : *clause) {
                 if (setContains(clauseRemovedLiterals, clauseLiteral)) {
-                    std::cout << "set contains check done 1" << std::endl;
                     continue;
                 }
-                std::cout << "set contains check done 2" << std::endl;
                 
                 this->instance->reduceLiteralCount(clauseLiteral);
                 if (setContains(this->instance->unitClauses, -clauseLiteral) || setContains(this->instance->unitClauses, clauseLiteral)) {
-                    std::cout << "in if 1" << std::endl;
                     continue;
                 }
-                std::cout << "after if 1" << std::endl;
                 if (!mapContainsKey(this->instance->literalCounts, clauseLiteral) && mapContainsKey(this->instance->literalCounts, -clauseLiteral)
                     && (literal != clauseLiteral) && (literal != -clauseLiteral)) {
-                    std::cout << "in if 2" << std::endl;
                     this->instance->pureSymbols->insert(-clauseLiteral);
                 }
-                std::cout << "after if 2" << std::endl;
             }
             
-            std::cout << "after loop 1" << std::endl;
             clausesToRemove.insert(clauseIdx);
             this->removedClauseStack->at(this->removedClauseStack->size() - 1)->insert(clauseIdx);
-            std::cout << "end of big if" << std::endl;
         } else if (setContains(clause, -literal)) {
             this->instance->reduceLiteralCount(-literal);
             // update removed literals
@@ -136,15 +124,11 @@ void DPLL::propagateUnitClause(int literal) {
             }
         }
     }
-    std::cout << "about to erase" << std::endl;
     for (int clauseIdx : clausesToRemove) {
         this->remainingClauses->erase(clauseIdx);
     }
-    std::cout << "done erasing" << std::endl;
     this->model->model->insert(literal);
-    std::cout << "inserted literal into model" << std::endl;
     this->assignmentStack->at(assignmentStack->size() - 1)->insert(literal);
-    std::cout << "inserted literal into stack" << std::endl;
     if (emptyClauseFound) {
         throw std::runtime_error("Empty clause found!");
     }
@@ -231,6 +215,9 @@ void DPLL::backtrack() {
     this->instance->pureSymbols->clear();
 
     delete(stackRemovedClauses);
+    for (const auto& pair : *stackRemovedLiterals) {
+        delete(pair.second);
+    }
     delete(stackRemovedLiterals);
     delete(stackAssignments);
 }
@@ -240,70 +227,58 @@ DPLLResult* DPLL::dpllInternal() {
     if (isSAT()) {
         return new DPLLResult(this->instance, this->model, true);
     }
-    std::cout << "isSAT check done" << std::endl;
+    // std::cout << "isSAT check done" << std::endl;
 
     if (!this->instance->pureSymbols->empty()) {
         propagatePureSymbols();
         return dpllInternal();
     }
-    std::cout << "pure symbols not propagated (internal)" << std::endl;
 
     try {
-        std::cout << "before UP check if" << std::endl;
         if (!this->instance->unitClauses->empty()) {
-            std::cout << "in UP check if" << std::endl;
             int unitLiteral = 0;
             for (int unitClause : *this->instance->unitClauses) {
                 unitLiteral = unitClause;
                 break;
             }
-            std::cout << "UP obtained" << std::endl;
 
             this->instance->unitClauses->erase(unitLiteral);
-            std::cout << "erase done" << std::endl;
             propagateUnitClause(unitLiteral);
             return dpllInternal();
         }
-        std::cout << "unit clauses not propagated (internal)" << std::endl;
     } catch (...) {
         return new DPLLResult(this->instance, this->model, false);
     }
 
-    std::cout << "about to branch..." << std::endl;
 
     try {
         int branchVariable = this->branchingStrategy->pickBranchingVariable(this->instance);
-        std::cout << "got branching variable" << std::endl;
+        std::cout << "branch on: " << branchVariable << std::endl;
 
         // POSITIVE ASSUMPTION
         // 1. make new entries on the stack
         this->removedClauseStack->push_back(new std::unordered_set<int>());
         this->removedLiteralStack->push_back(new std::unordered_map<int, std::unordered_set<int>*>());
         this->assignmentStack->push_back(new std::unordered_set<int>());
-        std::cout << "+ve 1 done" << std::endl;
 
         // 2. mark the branching variable as a unit clause that needs to be 
         this->instance->unitClauses->insert(branchVariable);
-        std::cout << "+ve 2 done" << std::endl;
                 
         // 3. recurse with posiitive assumption
         DPLLResult* positiveAssumptionResult = dpllInternal();
         if (positiveAssumptionResult->isSAT) {
             return positiveAssumptionResult;
         }
-        std::cout << "+ve 3 done" << std::endl;
+        delete(positiveAssumptionResult);
 
         // BACKTRACKING -- undo effects of positive assumption
         backtrack();
-        std::cout << "backtrack done" << std::endl;
         
         // NEGATIVE ASSUMPTION
         // 1. mark the negated branching variable as a unit clause that needs to be propagated
         this->instance->unitClauses->insert(-branchVariable);
-        std::cout << "negative 1 done" << std::endl;
 
         // 2. recurse with negative assumption 
-        std::cout << "about to do -ve recursion" << std::endl;
         return dpllInternal();
     } catch (const std::exception& e) {
         std::cerr << "Exception caught: " << e.what() << std::endl;
@@ -316,27 +291,28 @@ DPLLResult* DPLL::dpll() {
         return new DPLLResult(this->instance, this->model, false);
     }
 
-    std::cout << "checked for empty clause" << std::endl;
+    // std::cout << "checked for empty clause" << std::endl;
     
     // initialize stacks with empty elements (these initial elements should always remain on the stack -- never used
     // while backtracking etc since these are from before we ever branch)
     this->removedClauseStack->push_back(new std::unordered_set<int>());
     this->removedLiteralStack->push_back(new std::unordered_map<int, std::unordered_set<int>*>());
     this->assignmentStack->push_back(new std::unordered_set<int>());
-    std::cout << "created stacks" << std::endl;
+    // std::cout << "created stacks" << std::endl;
     
     // populate remaining clauses
     for (int i = 0; i < this->instance->clauses->size(); i++) {
         this->remainingClauses->insert(i);
     }
     assert(this->remainingClauses->size() == this->instance->clauses->size());
-    std::cout << "populated remainingClauses" << std::endl;
+    // std::cout << "populated remainingClauses" << std::endl;
 
     // finding pure symbols
     for (std::unordered_set<int> *clause : *this->instance->clauses) {
         for (int literal : *clause) {
             int literalCount = getOrDefault(this->instance->literalCounts, literal, 0);
-            this->instance->literalCounts->insert(std::make_pair(literal, literalCount + 1));
+            // this->instance->literalCounts->insert({literal, literalCount + 1});
+            (*this->instance->literalCounts)[literal] = literalCount + 1;
             if (mapContainsKey(this->instance->literalCounts, -literal)) {
                 this->instance->pureSymbols->erase(literal);
                 this->instance->pureSymbols->erase(-literal);
@@ -345,14 +321,14 @@ DPLLResult* DPLL::dpll() {
             }
         }
     }
-    std::cout << "found pure symbols" << std::endl;
+    // std::cout << "found pure symbols" << std::endl;
 
     propagatePureSymbols();
     this->instance->pureSymbols->clear();
-    std::cout << "propagated pure symbols" << std::endl;
+    // std::cout << "propagated pure symbols" << std::endl;
 
     findInitialUnitClauses();
-    std::cout << "found unit clauses" << std::endl;
+    // std::cout << "found unit clauses" << std::endl;
     
     return dpllInternal();
 }

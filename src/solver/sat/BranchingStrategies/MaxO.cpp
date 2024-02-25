@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "../include/MaxO.hpp"
 #include "../include/utils.hpp"
 

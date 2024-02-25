@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "../include/ClauseReducer.hpp"
 
 void ClauseReducer::setContext(std::unordered_set<int> *remainingClauses,
