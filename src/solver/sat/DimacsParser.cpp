@@ -63,6 +63,7 @@ SATInstance* DimacsParser::parseCNFFile(std::string filename) {
                     continue;
                 int literal = std::stoi(tokens[i]);
                 clause->insert(literal);
+                satInstance->addVariable(literal);
             }
             satInstance->clauses->push_back(clause);
         }
