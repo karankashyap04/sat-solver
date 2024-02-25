@@ -17,13 +17,22 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    std::string filename = argv[1];
+    std::string input = argv[1];
+    std::string filename;
+
+    size_t lastIndex = input.find_last_of('/');
+    if (lastIndex != std::string::npos) {
+        filename = input.substr(lastIndex + 1, input.length() - lastIndex);
+    }
+    else {
+        filename = input;
+    }
     cout << "filename: " << filename << endl;
     
     Timer watch;
     watch.start();
     
-    SATInstance* instance = DimacsParser::parseCNFFile(filename);
+    SATInstance* instance = DimacsParser::parseCNFFile(input);
     int numClauses = instance->numClauses;
     int numVars = instance->numVars;
     
