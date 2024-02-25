@@ -1,3 +1,6 @@
+#ifndef UTILS_H
+#define UTILS_H
+
 #include <unordered_map>
 #include <unordered_set>
 
@@ -15,3 +18,11 @@ bool setContains(std::unordered_set<T1> *set, T1 toCheck) {
     auto it = set->find(toCheck);
     return it != set->end();
 }
+
+template <class T1, class T2>
+bool mapContainsKey(std::unordered_map<T1, T2> *map, T1 toCheck) {
+    auto it = map->find(toCheck);
+    return it != map->end();
+}
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef BRANCHINGSTRATEGY_H
+#define BRANCHINGSTRATEGY_H
+
 #include <unordered_set>
 #include <unordered_map>
 #include "SATInstance.hpp"
@@ -11,3 +14,5 @@ public:
     // NOTE: there were more functions here in the Java implementation; I left them out for now
     //       since I figured it would make sense to implement them only if we need them here
 };
+
+#endif
