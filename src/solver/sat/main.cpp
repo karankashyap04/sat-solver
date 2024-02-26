@@ -6,10 +6,10 @@
 #include "include/DimacsParser.hpp"
 #include "include/BranchingStrategy.hpp"
 #include "include/DPLL.hpp"
-// #include "include/ClauseReducer.hpp"
+#include "include/ClauseReducer.hpp"
 #include "include/Model.hpp"
 // #include "include/SUP.hpp"
-#include "include/MaxoMomsJwCR.hpp"
+// #include "include/MaxoMomsJwCR.hpp"
 
 using namespace std;
 
@@ -35,13 +35,14 @@ int main(int argc, char *argv[]) {
     watch.start();
     
     SATInstance* instance = DimacsParser::parseCNFFile(input);
+    instance->instantiateLiteralCounts();
     int numClauses = instance->numClauses;
     int numVars = instance->numVars;
     
     cout << "Number of Clauses: " << numClauses << endl;
     cout << "Number of Variables: " << numVars << endl;
 
-    BranchingStrategy *branchingStrategy = new MaxoMomsJwCR();
+    BranchingStrategy *branchingStrategy = new ClauseReducer();
     Model model(new std::unordered_set<int>());
     DPLL *SATSolver = new DPLL(branchingStrategy, instance, &model);
     DPLLResult *result = SATSolver->dpll();
@@ -77,6 +78,12 @@ int main(int argc, char *argv[]) {
 
     delete(branchingStrategy);
     delete(model.model);
+    delete(instance->vars);
+    delete(instance->clauses);
+    delete(instance->pureSymbols);
+    delete(instance->unitClauses);
+    delete(instance->positiveLiteralCounts);
+    delete(instance->negativeLiteralCounts);
     delete(SATSolver);
     delete(result);
 

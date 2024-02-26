@@ -17,10 +17,16 @@ DPLL::DPLL(BranchingStrategy* branchingStrategy, SATInstance* instance, Model* m
     branchingStrategy->setContext(this->remainingClauses, this->removedLiterals);
 }
 
+int getVar(int literal) {
+    return literal < 0 ? -literal : literal;
+}
+
 void DPLL::propagatePureSymbols() {
     std::unordered_set<int> *filteredPureSymbols = new std::unordered_set<int>();
     for (int pureSymbol : *(this->instance->pureSymbols)) {
-        if (getOrDefault(instance->literalCounts, pureSymbol, 0) > 0)
+        // if (getOrDefault(instance->literalCounts, pureSymbol, 0) > 0)
+        //     filteredPureSymbols->insert(pureSymbol);
+        if (instance->getLiteralCounts(pureSymbol)->at(getVar(pureSymbol) - 1) > 0)
             filteredPureSymbols->insert(pureSymbol);
     }
     delete(instance->pureSymbols); // delete old memory on the heap
@@ -44,7 +50,11 @@ void DPLL::propagatePureSymbols() {
                 if (setContains(clauseRemovedLiterals, literal))
                     continue;
                 this->instance->reduceLiteralCount(literal);
-                if (mapContainsKey(instance->literalCounts, -literal) && !mapContainsKey(instance->literalCounts, literal)) {
+                // if (mapContainsKey(instance->literalCounts, -literal) && !mapContainsKey(instance->literalCounts, literal)) {
+                //     newPureSymbols->insert(-literal);
+                // }
+                int literalVar = getVar(literal);
+                if (instance->getLiteralCounts(-literal)->at(literalVar - 1) > 0 && instance->getLiteralCounts(literal)->at(literalVar - 1) == 0) {
                     newPureSymbols->insert(-literal);
                 }
             }
@@ -85,7 +95,10 @@ void DPLL::propagateUnitClause(int literal) {
                 if (setContains(this->instance->unitClauses, -clauseLiteral) || setContains(this->instance->unitClauses, clauseLiteral)) {
                     continue;
                 }
-                if (!mapContainsKey(this->instance->literalCounts, clauseLiteral) && mapContainsKey(this->instance->literalCounts, -clauseLiteral)
+
+                int clauseLiteralVar = getVar(clauseLiteral);
+                // if (!mapContainsKey(this->instance->literalCounts, clauseLiteral) && mapContainsKey(this->instance->literalCounts, -clauseLiteral)
+                if (this->instance->getLiteralCounts(clauseLiteral)->at(clauseLiteralVar - 1) == 0 && this->instance->getLiteralCounts(-clauseLiteral)->at(clauseLiteralVar - 1) > 0
                     && (literal != clauseLiteral) && (literal != -clauseLiteral)) {
                     this->instance->pureSymbols->insert(-clauseLiteral);
                 }
@@ -310,10 +323,11 @@ DPLLResult* DPLL::dpll() {
     // finding pure symbols
     for (std::unordered_set<int> *clause : *this->instance->clauses) {
         for (int literal : *clause) {
-            int literalCount = getOrDefault(this->instance->literalCounts, literal, 0);
-            // this->instance->literalCounts->insert({literal, literalCount + 1});
-            (*this->instance->literalCounts)[literal] = literalCount + 1;
-            if (mapContainsKey(this->instance->literalCounts, -literal)) {
+            // int literalCount = getOrDefault(this->instance->literalCounts, literal, 0);
+            this->instance->increaseLiteralCount(literal);
+            // (*this->instance->literalCounts)[literal] = literalCount + 1;
+            // if (mapContainsKey(this->instance->literalCounts, -literal)) {
+            if (this->instance->getLiteralCounts(literal)->at(getVar(literal) - 1) > 0) {
                 this->instance->pureSymbols->erase(literal);
                 this->instance->pureSymbols->erase(-literal);
             } else {

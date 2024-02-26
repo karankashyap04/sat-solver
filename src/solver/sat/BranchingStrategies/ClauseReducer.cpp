@@ -19,7 +19,7 @@ int ClauseReducer::pickBranchingVariable(SATInstance *instance) {
     MaxO maxo;
     maxo.setContext(this->remainingClauses, this->globalRemovedLiterals);
     int maxoLiteral = maxo.pickBranchingVariable(instance);
-
+    
     Moms moms;
     moms.setContext(this->remainingClauses, this->globalRemovedLiterals);
     int momsLiteral = moms.pickBranchingVariable(instance);
