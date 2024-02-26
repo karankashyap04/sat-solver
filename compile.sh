@@ -16,4 +16,5 @@ g++ -O3 -w src/solver/sat/main.cpp src/solver/sat/include/main.hpp src/solver/sa
     src/solver/sat/include/ClauseReducer.hpp src/solver/sat/include/MaxO.hpp \
     src/solver/sat/BranchingStrategies/Moms.cpp src/solver/sat/include/Moms.hpp \
     src/solver/sat/BranchingStrategies/Jw.cpp src/solver/sat/include/Jw.hpp \
-    src/solver/sat/BranchingStrategies/SUP.cpp src/solver/sat/include/SUP.hpp
+    src/solver/sat/BranchingStrategies/SUP.cpp src/solver/sat/include/SUP.hpp \
+    src/solver/sat/BranchingStrategies/MaxoMomsJwCR.cpp src/solver/sat/include/MaxoMomsJwCR.hpp
