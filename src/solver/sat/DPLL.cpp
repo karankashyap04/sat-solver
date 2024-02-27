@@ -327,7 +327,7 @@ DPLLResult* DPLL::dpll() {
             this->instance->increaseLiteralCount(literal);
             // (*this->instance->literalCounts)[literal] = literalCount + 1;
             // if (mapContainsKey(this->instance->literalCounts, -literal)) {
-            if (this->instance->getLiteralCounts(literal)->at(getVar(literal) - 1) > 0) {
+            if (this->instance->getLiteralCounts(-literal)->at(getVar(-literal) - 1) > 0) {
                 this->instance->pureSymbols->erase(literal);
                 this->instance->pureSymbols->erase(-literal);
             } else {

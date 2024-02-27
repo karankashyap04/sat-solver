@@ -18,8 +18,8 @@ std::vector<int>* SATInstance::getLiteralCounts(int literal) {
 }
 
 void SATInstance::instantiateLiteralCounts() {
-    this->positiveLiteralCounts = new std::vector<int>(this->numVars);
-    this->negativeLiteralCounts = new std::vector<int>(this->numVars);
+    this->positiveLiteralCounts = new std::vector<int>(this->numVars, 0);
+    this->negativeLiteralCounts = new std::vector<int>(this->numVars, 0);
 }
 
 void SATInstance::addVariable(int literal) {
