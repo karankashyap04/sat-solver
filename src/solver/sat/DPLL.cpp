@@ -238,65 +238,136 @@ void DPLL::backtrack() {
 
 
 DPLLResult* DPLL::dpllInternal() {
-    if (isSAT()) {
-        return new DPLLResult(this->instance, this->model, true);
-    }
-    // std::cout << "isSAT check done" << std::endl;
+    std::vector<int> dpllLiteralStack;
+    std::vector<bool> dpllNegCheckedStack;
+    bool unsatReached = false;
 
-    if (!this->instance->pureSymbols->empty()) {
-        propagatePureSymbols();
-        return dpllInternal();
-    }
-
-    try {
-        if (!this->instance->unitClauses->empty()) {
-            int unitLiteral = 0;
-            for (int unitClause : *this->instance->unitClauses) {
-                unitLiteral = unitClause;
-                break;
+    while (!isSAT()) {
+        if (unsatReached) {
+            if (dpllLiteralStack.empty())
+                return new DPLLResult(this->instance, this->model, false);
+            bool negativeBranchChecked = dpllNegCheckedStack.back();
+            if (negativeBranchChecked) {
+                dpllLiteralStack.pop_back();
+                dpllNegCheckedStack.pop_back();
+                continue;
             }
-
-            this->instance->unitClauses->erase(unitLiteral);
-            propagateUnitClause(unitLiteral);
-            return dpllInternal();
+            // negative branch not yet checked
+            backtrack();
+            dpllLiteralStack.back() *= -1;
+            instance->unitClauses->insert(dpllLiteralStack.back());
+            dpllNegCheckedStack.back() = true;
+            unsatReached = false;
+            continue;
         }
-    } catch (...) {
-        return new DPLLResult(this->instance, this->model, false);
+
+        if (!this->instance->pureSymbols->empty()) {
+            propagatePureSymbols();
+            continue;
+        }
+
+        try {
+            if (!this->instance->unitClauses->empty()) {
+                int unitLiteral = 0;
+                for (int unitClause : *this->instance->unitClauses) {
+                    unitLiteral = unitClause;
+                    break;
+                }
+
+                this->instance->unitClauses->erase(unitLiteral);
+                propagateUnitClause(unitLiteral);
+                continue;
+            }
+        } catch (...) {
+            // return new DPLLResult(this->instance, this->model, false);
+            unsatReached = true;
+            continue;
+        }
+
+        // we need to branch!
+        try {
+            int branchVariable = this->branchingStrategy->pickBranchingVariable(this->instance);
+            dpllLiteralStack.push_back(branchVariable);
+            dpllNegCheckedStack.push_back(false);
+
+            // 1. make new entries on the global stacks
+            this->removedClauseStack->push_back(new std::unordered_set<int>());
+            this->removedLiteralStack->push_back(new std::unordered_map<int, std::unordered_set<int>*>());
+            this->assignmentStack->push_back(new std::unordered_set<int>());
+
+            // 2. mark the branching variable as a unit clause that needs to be propagated
+            this->instance->unitClauses->insert(branchVariable);
+            continue;
+        } catch (const std::exception& e) {
+            std::cerr << "Exception caught: " << e.what() << std::endl;
+            return NULL;
+        }
+
     }
+    
+    return new DPLLResult(this->instance, this->model, true);
+
+    // OLD CODE:
+
+    // if (isSAT()) {
+    //     return new DPLLResult(this->instance, this->model, true);
+    // }
+    // // std::cout << "isSAT check done" << std::endl;
+
+    // if (!this->instance->pureSymbols->empty()) {
+    //     propagatePureSymbols();
+    //     return dpllInternal();
+    // }
+
+    // try {
+    //     if (!this->instance->unitClauses->empty()) {
+    //         int unitLiteral = 0;
+    //         for (int unitClause : *this->instance->unitClauses) {
+    //             unitLiteral = unitClause;
+    //             break;
+    //         }
+
+    //         this->instance->unitClauses->erase(unitLiteral);
+    //         propagateUnitClause(unitLiteral);
+    //         return dpllInternal();
+    //     }
+    // } catch (...) {
+    //     return new DPLLResult(this->instance, this->model, false);
+    // }
 
 
-    try {
-        int branchVariable = this->branchingStrategy->pickBranchingVariable(this->instance);
+    // try {
+    //     int branchVariable = this->branchingStrategy->pickBranchingVariable(this->instance);
 
-        // POSITIVE ASSUMPTION
-        // 1. make new entries on the stack
-        this->removedClauseStack->push_back(new std::unordered_set<int>());
-        this->removedLiteralStack->push_back(new std::unordered_map<int, std::unordered_set<int>*>());
-        this->assignmentStack->push_back(new std::unordered_set<int>());
+    //     // POSITIVE ASSUMPTION
+    //     // 1. make new entries on the stack
+    //     this->removedClauseStack->push_back(new std::unordered_set<int>());
+    //     this->removedLiteralStack->push_back(new std::unordered_map<int, std::unordered_set<int>*>());
+    //     this->assignmentStack->push_back(new std::unordered_set<int>());
 
-        // 2. mark the branching variable as a unit clause that needs to be 
-        this->instance->unitClauses->insert(branchVariable);
+    //     // 2. mark the branching variable as a unit clause that needs to be 
+    //     this->instance->unitClauses->insert(branchVariable);
                 
-        // 3. recurse with posiitive assumption
-        DPLLResult* positiveAssumptionResult = dpllInternal();
-        if (positiveAssumptionResult->isSAT) {
-            return positiveAssumptionResult;
-        }
-        delete(positiveAssumptionResult);
+    //     // 3. recurse with posiitive assumption
+    //     DPLLResult* positiveAssumptionResult = dpllInternal();
+    //     if (positiveAssumptionResult->isSAT) {
+    //         return positiveAssumptionResult;
+    //     }
+    //     delete(positiveAssumptionResult);
 
-        // BACKTRACKING -- undo effects of positive assumption
-        backtrack();
+    //     // BACKTRACKING -- undo effects of positive assumption
+    //     backtrack();
         
-        // NEGATIVE ASSUMPTION
-        // 1. mark the negated branching variable as a unit clause that needs to be propagated
-        this->instance->unitClauses->insert(-branchVariable);
+    //     // NEGATIVE ASSUMPTION
+    //     // 1. mark the negated branching variable as a unit clause that needs to be propagated
+    //     this->instance->unitClauses->insert(-branchVariable);
 
-        // 2. recurse with negative assumption 
-        return dpllInternal();
-    } catch (const std::exception& e) {
-        std::cerr << "Exception caught: " << e.what() << std::endl;
-        return NULL;
-    }
+    //     // 2. recurse with negative assumption 
+    //     return dpllInternal();
+    // } catch (const std::exception& e) {
+    //     std::cerr << "Exception caught: " << e.what() << std::endl;
+    //     return NULL;
+    // }
 }
 
 DPLLResult* DPLL::dpll() {
