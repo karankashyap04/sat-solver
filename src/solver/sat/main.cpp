@@ -35,9 +35,9 @@ int main(int argc, char *argv[]) {
     watch.start();
     
     SATInstance* instance = DimacsParser::parseCNFFile(input);
-    instance->instantiateLiteralCounts();
     int numClauses = instance->numClauses;
     int numVars = instance->numVars;
+    instance->instantiateLiteralCounts();
     
     cout << "Number of Clauses: " << numClauses << endl;
     cout << "Number of Variables: " << numVars << endl;
