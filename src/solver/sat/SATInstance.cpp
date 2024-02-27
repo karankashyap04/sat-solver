@@ -41,7 +41,6 @@ void SATInstance::reduceLiteralCount(int literal) {
     // } else {
     //     literalCounts->at(literal) = literalCount - 1;
     // }
-    std::cout << "reducing literal count" << std::endl;
     std::vector<int> *literalCounts = this->getLiteralCounts(literal);
     int literalIdx = (literal < 0 ? -literal : literal) - 1;
     int literalCount = literalCounts->at(literalIdx);
@@ -59,7 +58,6 @@ void SATInstance::increaseLiteralCount(int literal) {
     // } else {
     //     literalCounts->at(literal) = literalCount + 1;
     // }
-    std::cout << "increasing literal count" << literal << ": " << this->vars->size() << std::endl;
     std::vector<int> *literalCounts = this->getLiteralCounts(literal);
     int literalIdx = (literal < 0 ? -literal : literal) - 1;
     literalCounts->at(literalIdx) += 1;
