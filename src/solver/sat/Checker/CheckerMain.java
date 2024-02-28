@@ -19,6 +19,7 @@ public class CheckerMain {
 
         // read results.log
         String resultsPath = "results.log";
+        System.out.println(resultsPath);
         BufferedReader reader = new BufferedReader(new FileReader(resultsPath));
 
         String line = reader.readLine();
