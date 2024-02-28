@@ -8,8 +8,6 @@
 #include "include/DPLL.hpp"
 #include "include/ClauseReducer.hpp"
 #include "include/Model.hpp"
-// #include "include/SUP.hpp"
-// #include "include/MaxoMomsJwCR.hpp"
 
 using namespace std;
 
@@ -30,7 +28,6 @@ int main(int argc, char *argv[]) {
     else {
         filename = input;
     }
-    cout << "filename: " << filename << endl;
     
     Timer watch;
     watch.start(); // start measuring time
@@ -51,8 +48,6 @@ int main(int argc, char *argv[]) {
     watch.stop(); // stop measuring time
 
     float timeElapsed = floor(watch.getTime() * 100.0) / 100.0;
-
-    cout << "time elapsed: " << timeElapsed << "s" << endl;
     
     if (result->isSAT) {
         cout << "{\"Instance\": \"" << filename << "\", \"Time\": "
