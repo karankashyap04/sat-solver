@@ -9,6 +9,9 @@ void Jw::setContext(std::unordered_set<int> *remainingClauses,
     this->globalRemovedLiterals = globalRemovedLiterals;
 }
 
+/**
+ * Picks a variable based on the Jeroslaw-Wang heuristic
+*/
 int Jw::pickBranchingVariable(SATInstance *instance) {
     if (this->remainingClauses->empty()) {
         throw std::runtime_error("Tried to pick branching variable with no clauses - already SAT");

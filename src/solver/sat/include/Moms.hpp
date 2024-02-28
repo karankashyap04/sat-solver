@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+// Implements the MOMS branching heuristic as per Lagoudakis, M. & Littman, M.
+// (https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=5c33e9abec94c4093742f23683abd357d48991c6)
 class Moms : public BranchingStrategy {
 public:
     // do something

@@ -13,11 +13,8 @@ SATInstance* DimacsParser::parseCNFFile(std::string filename) {
     try {
         std::string line;
         std::ifstream infile(filename);
-
-        // if (!infile.is_open()) {
-        //     std::cout << "file not open" << std::endl;
-        // }
         
+        // skip all initial lines that are comments
         while (std::getline(infile, line)) {
             if (line[0] != 'c')
                 break;
@@ -71,10 +68,6 @@ SATInstance* DimacsParser::parseCNFFile(std::string filename) {
     catch (...) {
         throw std::runtime_error("Error: couldn't read DIMACS file: " + filename);
     }
-    // catch (const std::exception& e) {
-    //     std::cerr << "Exception caught: " << e.what() << std::endl;
-    //     return satInstance; // or handle the error accordingly
-    // }
     
     return satInstance;
 }

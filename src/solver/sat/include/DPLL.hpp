@@ -27,10 +27,7 @@ public:
     DPLLResult* dpll();
 
 private:
-    // NOTE: I am changing these functions (vs Java implementation) to not
-    // take the SATInstance and Model as inputs; these are passed in the constructor
-    // and stored 
-    void propagatePureSymbols(); // not passing in pure symbols as arg; access from instance
+    void propagatePureSymbols();
     void propagateUnitClause(int literal);
     bool isSAT();
     bool initiallyHasEmptyClause();

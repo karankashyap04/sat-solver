@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
     std::string input = argv[1];
     std::string filename;
 
+    // extract the filename from the provided input
     size_t lastIndex = input.find_last_of('/');
     if (lastIndex != std::string::npos) {
         filename = input.substr(lastIndex + 1, input.length() - lastIndex);
@@ -32,9 +33,9 @@ int main(int argc, char *argv[]) {
     cout << "filename: " << filename << endl;
     
     Timer watch;
-    watch.start();
+    watch.start(); // start measuring time
     
-    SATInstance* instance = DimacsParser::parseCNFFile(input);
+    SATInstance* instance = DimacsParser::parseCNFFile(input); // parse CNF file
     int numClauses = instance->numClauses;
     int numVars = instance->numVars;
     instance->instantiateLiteralCounts();
@@ -45,21 +46,11 @@ int main(int argc, char *argv[]) {
     BranchingStrategy *branchingStrategy = new ClauseReducer();
     Model model(new std::unordered_set<int>());
     DPLL *SATSolver = new DPLL(branchingStrategy, instance, &model);
-    DPLLResult *result = SATSolver->dpll();
+    DPLLResult *result = SATSolver->dpll(); // run dpll
 
-    watch.stop();
-
-    // TODO: remove later -- this was just to ensure that clauses contained expected literals
-    // for (size_t i = 0; i < instance->clauses->size(); i++) {
-    //     auto clause = instance->clauses->at(i);
-    //     for (auto it = clause->begin(); it != clause->end(); it++) {
-    //         cout << *it << " ";
-    //     }
-    //     cout << endl;
-    // }
+    watch.stop(); // stop measuring time
 
     float timeElapsed = floor(watch.getTime() * 100.0) / 100.0;
-    // float timeElapsed = watch.getTime();
 
     cout << "time elapsed: " << timeElapsed << "s" << endl;
     

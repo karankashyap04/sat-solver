@@ -6,7 +6,7 @@
 class Model
 {
 public:
-    std::unordered_set<int>* model;
+    std::unordered_set<int>* model; // to store variable assignments
 
     Model(std::unordered_set<int>* model);
 };

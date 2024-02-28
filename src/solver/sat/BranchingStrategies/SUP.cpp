@@ -11,6 +11,9 @@ void SUP::setContext(std::unordered_set<int> *remainingClauses,
     this->globalRemovedLiterals = globalRemovedLiterals;
 }
 
+/**
+ * Picks the variable which will lead to the most unit propagations
+*/
 int SUP::pickBranchingVariable(SATInstance *instance) {
     if (this->remainingClauses->empty()) {
         throw std::runtime_error("Tried to pick branching variable with no clauses - already SAT");

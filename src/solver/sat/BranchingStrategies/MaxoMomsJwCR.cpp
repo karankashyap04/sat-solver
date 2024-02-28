@@ -12,6 +12,13 @@ void MaxoMomsJwCR::setContext(std::unordered_set<int> *remainingClauses,
     this->globalRemovedLiterals = globalRemovedLiterals;
 }
 
+/**
+ * Picks one of three options: the most occurring variable (MAXO), and the most
+ * occurring variable in clauses of minimal size (MOMS), and the variable predicted
+ * by the Jeroslaw-Wang (JW) heuristic.
+ * It picks between them based on the variable that would create the most
+ * unit clauses in the branch for the negated literal of the variable.
+*/
 int MaxoMomsJwCR::pickBranchingVariable(SATInstance *instance) {
     if (this->remainingClauses->empty()) {
         throw std::runtime_error("Tried to pick branching variable with no clauses - already SAT");

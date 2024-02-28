@@ -11,28 +11,27 @@ void ClauseReducer::setContext(std::unordered_set<int> *remainingClauses,
     this->globalRemovedLiterals = globalRemovedLiterals;
 }
 
+/**
+ * Picks one of two options: the most occurring variable (MAXO), and the most
+ * occurring variable in clauses of minimal size (MOMS). In picking between
+ * the two, it compares how many unit propagations the MAXO variable would
+ * create in this branch, and how many unit clauses the MOMS variable would
+ * create in branch for the negated literal for the variable.
+*/
 int ClauseReducer::pickBranchingVariable(SATInstance *instance) {
     if (this->remainingClauses->empty()) {
         throw std::runtime_error("Tried to pick branching variable with no clauses - already SAT");
     }
 
+    // get literal based on MAXO: most occurring var
     MaxO maxo;
     maxo.setContext(this->remainingClauses, this->globalRemovedLiterals);
     int maxoLiteral = maxo.pickBranchingVariable(instance);
     
+    // get literal based on MOMS: most occurring var in clauses of minimum size
     Moms moms;
     moms.setContext(this->remainingClauses, this->globalRemovedLiterals);
     int momsLiteral = moms.pickBranchingVariable(instance);
-
-    // if (this->remainingClauses->size() < 100) {
-    //     std::random_device rd;  // Obtain a random number from hardware
-    //     std::mt19937 rng(rd());
-    //     std::uniform_int_distribution<int> distribution(1, 10);
-    //     int random_int = distribution(rng);
-    //     if (random_int % 2 == 0)
-    //         return maxoLiteral;
-    //     return momsLiteral;
-    // }
 
     int MAXO = 0, MOMS = 1;
     int maxoUP = 0, momsUP = 0;

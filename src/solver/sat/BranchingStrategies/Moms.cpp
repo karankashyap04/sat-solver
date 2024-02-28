@@ -12,6 +12,7 @@ void Moms::setContext(std::unordered_set<int> *remainingClauses,
 }
 
 std::unordered_set<int>* Moms::getMinSizeClauses(SATInstance *instance) {
+    // returns the indices of the clauses of minimum size
     std::unordered_map<int, std::unordered_set<int>*> clausesOfSize;
     int currMinSize = std::numeric_limits<int>::max();
 
@@ -37,6 +38,10 @@ std::unordered_set<int>* Moms::getMinSizeClauses(SATInstance *instance) {
     return clausesOfSize[currMinSize];
 }
 
+/**
+ * Picks the maximally occurring variable (across the positive and negative literals
+ * that correspond to the variable) within clauses of the smallest size
+*/
 int Moms::pickBranchingVariable(SATInstance *instance) {
     if (this->remainingClauses->empty()) {
         throw std::runtime_error("Tried to pick branching variable with no clauses - already SAT");
@@ -69,6 +74,7 @@ int Moms::pickBranchingVariable(SATInstance *instance) {
 
     delete(minSizeClauses);
 
+    // if var occurs more than -var, we will first branch on var, and vice-versa
     if (getOrDefault(&literalScores, maxVar, 0) >= getOrDefault(&literalScores, -maxVar, 0)) {
         return maxVar;
     }
