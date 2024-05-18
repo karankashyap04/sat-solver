@@ -233,7 +233,7 @@ void DPLL::backtrack() {
             // ignore literals if they are in removedLiterals.
             // if something is in removedLiterals, these are literals that were removed from the clause before
             // the clause itself was removed (when removing a clause as a whole, we don't update removedLiterals for the clause).
-            // we want to make sure not to unroll the removal of literals from the clause that tookk place
+            // we want to make sure not to unroll the removal of literals from the clause that took place
             // before the branch being undone.
             if (setContains(clauseRemovedLiterals, literal))
                 continue;
