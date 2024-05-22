@@ -33,4 +33,4 @@ If you want to run the solver on all the input files in a directory, you can run
 
 ## Developers
 
-This SAT Solver was built by [Karan Kashyap](https://github.com/karankashyap04) and [Erica Song](https://github.com/20songe).
+This SAT Solver was built by [Karan Kashyap](https://github.com/karankashyap04) and [Erica Song](https://github.com/20songe) for Brown University's Prescriptive Analytics course.
