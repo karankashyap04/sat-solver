@@ -36,15 +36,14 @@ touch $logFile
 # Run on every file, get the last line, append to log file
 for f in $inputFolder*.*
 do
-	fullFileName=$(realpath "$f")
-	echo "Running $fullFileName"
-	timeout $timeLimit ./run.sh $fullFileName > output.tmp
+	echo "Running $f"
+	timeout $timeLimit ./run.sh $f > output.tmp
 	returnValue="$?"
 	if [[ "$returnValue" = 0 ]]; then 					# Run is successful
 		cat output.tmp | tail -1 >> $logFile				# Record the last line as solution
 	else 										# Run failed, record the instanceName with no solution
 		echo Error
-		instance=$(basename "$fullFileName")	
+		instance=$f
 		echo "{\"Instance\": \"$instance\", \"Time\": \"--\", \"Result\": \"--\"}" >> $logFile	
 	fi
 	rm -f output.tmp
