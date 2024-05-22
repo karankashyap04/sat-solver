@@ -26,11 +26,11 @@ If you want to run the solver on all the input files in a directory, you can run
 ```bash
 ./runAll.sh <input-folder> <timeout (in seconds)> <output-filename>
 ```
-* For example, to generate the [results.log](https://github.com/karankashyap04/sat-solver/blob/main/results.log) file containing solver results on all the instances in the `input/` directory with a 300 second timeout, we ran
+* For example, to generate the [results.log](https://github.com/karankashyap04/sat-solver/blob/main/results.log) file containing solver results on all the instances in the `input/` directory with a 300 second timeout (per instance), we ran
   ```bash
   ./runAll.sh input/ 300 results.log
   ```
 
 ## Developers
 
-This SAT Solver was built by [Karan Kashyap](https://github.com/karankashyap04) and [Erica Song](https://github.com/20songe) for Brown University's Prescriptive Analytics course.
+This SAT Solver was built by [Karan Kashyap](https://github.com/karankashyap04) and [Erica Song](https://github.com/20songe).
