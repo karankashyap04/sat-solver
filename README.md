@@ -4,6 +4,8 @@ An iterative DPLL [SAT solver](https://en.wikipedia.org/wiki/SAT_solver#:~:text=
 
 For information on how we built this SAT solver, our custom variable selection heuristic (`ClauseReducer`), optimizations made, and more, read our [report](https://github.com/karankashyap04/sat-solver/blob/main/report.pdf).
 
+All the code for our solver is within the [`src/solver/sat`](https://github.com/karankashyap04/sat-solver/tree/main/src/solver/sat) subdirectory.
+
 ## Usage
 
 Initially, you need to compile the code into a binary. To do this, run
